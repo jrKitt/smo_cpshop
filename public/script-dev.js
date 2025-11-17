@@ -15,6 +15,74 @@ let selectedSizes = {
   polo: [],
   jacket: [],
 };
+let currentOrderRef = null; // เก็บ orderRef ปัจจุบัน
+let uploadedSlipData = null; // เก็บข้อมูลสลิปที่อัปโหลด
+
+// LocalStorage functions for slip management
+function saveSlipToStorage(slipData) {
+  try {
+    const existingSlips = getSlipsFromStorage();
+
+    // ตรวจสอบว่ามี orderRef นี้อยู่แล้วหรือไม่
+    const existingIndex = existingSlips.findIndex(
+      (slip) => slip.orderRef === slipData.orderRef
+    );
+
+    if (existingIndex !== -1) {
+      // อัปเดตข้อมูลเก่า
+      existingSlips[existingIndex] = {
+        ...existingSlips[existingIndex],
+        ...slipData,
+        lastUpdated: new Date().toISOString(),
+      };
+    } else {
+      // เพิ่มข้อมูลใหม่
+      existingSlips.push({
+        ...slipData,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+      });
+    }
+
+    localStorage.setItem("cpshop_slips", JSON.stringify(existingSlips));
+    console.log("Slip saved to localStorage:", slipData.orderRef);
+    return true;
+  } catch (error) {
+    console.error("Error saving slip to localStorage:", error);
+    return false;
+  }
+}
+
+function getSlipsFromStorage() {
+  try {
+    const slips = localStorage.getItem("cpshop_slips");
+    return slips ? JSON.parse(slips) : [];
+  } catch (error) {
+    console.error("Error reading slips from localStorage:", error);
+    return [];
+  }
+}
+
+function getSlipFromStorage(orderRef) {
+  try {
+    const slips = getSlipsFromStorage();
+    return slips.find((slip) => slip.orderRef === orderRef);
+  } catch (error) {
+    console.error("Error finding slip in localStorage:", error);
+    return null;
+  }
+}
+
+function clearSlipsStorage() {
+  try {
+    localStorage.removeItem("cpshop_slips");
+    console.log("Slips storage cleared");
+    return true;
+  } catch (error) {
+    console.error("Error clearing slips storage:", error);
+    return false;
+  }
+}
 // Package prices
 const packages = {
   individual: { name: "ซื้อแยกชิ้น", price: 0, originalPrice: 0, items: [] },
@@ -71,7 +139,9 @@ function updatePackageSelection() {
   document.querySelectorAll(".package-card").forEach((card) => {
     card.classList.remove("selected");
   });
-  const selectedCard = document.querySelector(`[data-package="${selectedPackage}"]`);
+  const selectedCard = document.querySelector(
+    `[data-package="${selectedPackage}"]`
+  );
   if (selectedCard) {
     selectedCard.classList.add("selected");
   }
@@ -80,9 +150,13 @@ function updatePackageSelection() {
 function showSelectionDetails() {
   const detailsSection = document.getElementById("selection-details");
   const quantitySection = document.getElementById("quantity-section");
-  const individualItemsSection = document.getElementById("individual-items-selection");
+  const individualItemsSection = document.getElementById(
+    "individual-items-selection"
+  );
   const poloSizesContainer = document.getElementById("polo-sizes-container");
-  const jacketSizesContainer = document.getElementById("jacket-sizes-container");
+  const jacketSizesContainer = document.getElementById(
+    "jacket-sizes-container"
+  );
   const poloSizeSection = document.getElementById("polo-size-section");
   const jacketSizeSection = document.getElementById("jacket-size-section");
 
@@ -138,14 +212,17 @@ function showSelectionDetails() {
 
 function selectSize(type, size) {
   selectedSizes[type][0] = size;
-  const sectionId = type === "polo" ? "polo-size-section" : "jacket-size-section";
+  const sectionId =
+    type === "polo" ? "polo-size-section" : "jacket-size-section";
   const section = document.getElementById(sectionId);
 
   section.querySelectorAll(".size-btn").forEach((item) => {
     item.classList.remove("selected");
   });
 
-  const selectedButton = section.querySelector(`.size-btn[data-size="${size}"]`);
+  const selectedButton = section.querySelector(
+    `.size-btn[data-size="${size}"]`
+  );
   if (selectedButton) {
     selectedButton.classList.add("selected");
   }
@@ -172,7 +249,9 @@ function updateSizeSelectors(type) {
 
     const label = document.createElement("label");
     label.className = "form-label fw-bold";
-    label.textContent = `${type === "polo" ? "เสื้อโปโล" : "เสื้อแจ็คเก็ต"} ตัวที่ ${i + 1}:`;
+    label.textContent = `${
+      type === "polo" ? "เสื้อโปโล" : "เสื้อแจ็คเก็ต"
+    } ตัวที่ ${i + 1}:`;
     sizeSelector.appendChild(label);
 
     const rowDiv = document.createElement("div");
@@ -180,7 +259,18 @@ function updateSizeSelectors(type) {
     rowDiv.setAttribute("data-type", type);
     rowDiv.setAttribute("data-index", i);
 
-    const sizes = ["SSS", "SS", "S", "M", "L", "XL", "XXL", "3XL", "4XL", "5XL"];
+    const sizes = [
+      "SSS",
+      "SS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL",
+    ];
     sizes.forEach((size) => {
       const colDiv = document.createElement("div");
       colDiv.className = "col";
@@ -205,24 +295,33 @@ function updateSizeSelectors(type) {
 function selectMultiSize(type, index, size) {
   selectedSizes[type][index] = size;
 
-  const sizeGrid = document.querySelector(`[data-type="${type}"][data-index="${index}"]`);
+  const sizeGrid = document.querySelector(
+    `[data-type="${type}"][data-index="${index}"]`
+  );
 
   sizeGrid.querySelectorAll(".size-btn").forEach((item) => {
     item.classList.remove("selected");
   });
 
-  const selectedButton = sizeGrid.querySelector(`.size-btn[data-size="${size}"]`);
+  const selectedButton = sizeGrid.querySelector(
+    `.size-btn[data-size="${size}"]`
+  );
   if (selectedButton) {
     selectedButton.classList.add("selected");
   }
 }
 
 function updateIndividualItems() {
-  individualItems.polo.quantity = parseInt(document.getElementById("polo-select").value) || 0;
-  individualItems.jacket.quantity = parseInt(document.getElementById("jacket-select").value) || 0;
-  individualItems.belt.quantity = parseInt(document.getElementById("belt-select").value) || 0;
-  individualItems.tung.quantity = parseInt(document.getElementById("tung-select").value) || 0;
-  individualItems.tie.quantity = parseInt(document.getElementById("tie-select").value) || 0;
+  individualItems.polo.quantity =
+    parseInt(document.getElementById("polo-select").value) || 0;
+  individualItems.jacket.quantity =
+    parseInt(document.getElementById("jacket-select").value) || 0;
+  individualItems.belt.quantity =
+    parseInt(document.getElementById("belt-select").value) || 0;
+  individualItems.tung.quantity =
+    parseInt(document.getElementById("tung-select").value) || 0;
+  individualItems.tie.quantity =
+    parseInt(document.getElementById("tie-select").value) || 0;
 
   updateSizeSelectors("polo");
   updateSizeSelectors("jacket");
@@ -235,11 +334,16 @@ function updateIndividualItems() {
   packages["individual"].price = total;
 
   packages["individual"].items = [];
-  if (individualItems.polo.quantity > 0) packages["individual"].items.push("เสื้อโปโล");
-  if (individualItems.jacket.quantity > 0) packages["individual"].items.push("เสื้อแจ็คเก็ต");
-  if (individualItems.belt.quantity > 0) packages["individual"].items.push("หัวเข็มขัด");
-  if (individualItems.tung.quantity > 0) packages["individual"].items.push("ตุ้งติ้ง");
-  if (individualItems.tie.quantity > 0) packages["individual"].items.push("ที่หนีบเนคไท");
+  if (individualItems.polo.quantity > 0)
+    packages["individual"].items.push("เสื้อโปโล");
+  if (individualItems.jacket.quantity > 0)
+    packages["individual"].items.push("เสื้อแจ็คเก็ต");
+  if (individualItems.belt.quantity > 0)
+    packages["individual"].items.push("หัวเข็มขัด");
+  if (individualItems.tung.quantity > 0)
+    packages["individual"].items.push("ตุ้งติ้ง");
+  if (individualItems.tie.quantity > 0)
+    packages["individual"].items.push("ที่หนีบเนคไท");
 
   updateTotal();
 }
@@ -279,11 +383,13 @@ function updateTotal() {
   }
 }
 
-document.querySelectorAll('.delivery-option input[type="radio"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
-    selectDelivery(e.target.value);
+document
+  .querySelectorAll('.delivery-option input[type="radio"]')
+  .forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      selectDelivery(e.target.value);
+    });
   });
-});
 
 function selectDelivery(type) {
   deliveryType = type;
@@ -342,17 +448,23 @@ function validateEmail(email) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { valid: false, error: "รูปแบบอีเมลไม่ถูกต้อง" };
   }
-  
-  const allowedDomains = ["kkumail.com", "kku.ac.th", "gmail.com", "hotmail.com"];
-  const domain = email.split('@')[1].toLowerCase();
-  
+
+  const allowedDomains = [
+    "kkumail.com",
+    "kku.ac.th",
+    "gmail.com",
+    "hotmail.com",
+  ];
+  const domain = email.split("@")[1].toLowerCase();
+
   if (!allowedDomains.includes(domain)) {
-    return { 
-      valid: false, 
-      error: "กรุณาใช้อีเมลที่ลงท้ายด้วย kkumail.com, kku.ac.th, gmail.com หรือ hotmail.com เท่านั้น" 
+    return {
+      valid: false,
+      error:
+        "กรุณาใช้อีเมลที่ลงท้ายด้วย kkumail.com, kku.ac.th, gmail.com หรือ hotmail.com เท่านั้น",
     };
   }
-  
+
   return { valid: true, error: "" };
 }
 
@@ -444,7 +556,14 @@ function validateForm() {
   });
 
   [
-    "email", "firstname", "lastname", "phone", "address", "slip", "major", "studentId",
+    "email",
+    "firstname",
+    "lastname",
+    "phone",
+    "address",
+    "slip",
+    "major",
+    "studentId",
   ].forEach((field) => {
     if (!errors[field]) {
       const errorDiv = document.getElementById(`${field}-error`);
@@ -482,7 +601,9 @@ function validateForm() {
 }
 
 function proceedToCheckout() {
-  document.getElementById("customer-form").scrollIntoView({ behavior: "smooth" });
+  document
+    .getElementById("customer-form")
+    .scrollIntoView({ behavior: "smooth" });
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (!selectedPackage) {
@@ -491,14 +612,18 @@ function proceedToCheckout() {
   }
 
   if (selectedPackage === "individual") {
-    const hasItems = Object.values(individualItems).some((item) => item.quantity > 0);
+    const hasItems = Object.values(individualItems).some(
+      (item) => item.quantity > 0
+    );
     if (!hasItems) {
       alert("กรุณาเลือกสินค้าอย่างน้อย 1 ชิ้น");
       return;
     }
 
     if (individualItems.polo.quantity > 0) {
-      const allPoloSizesSelected = selectedSizes.polo.every((size) => size !== null);
+      const allPoloSizesSelected = selectedSizes.polo.every(
+        (size) => size !== null
+      );
       if (!allPoloSizesSelected) {
         alert("กรุณาเลือกไซส์เสื้อโปโลให้ครบทุกตัว");
         return;
@@ -506,7 +631,9 @@ function proceedToCheckout() {
     }
 
     if (individualItems.jacket.quantity > 0) {
-      const allJacketSizesSelected = selectedSizes.jacket.every((size) => size !== null);
+      const allJacketSizesSelected = selectedSizes.jacket.every(
+        (size) => size !== null
+      );
       if (!allJacketSizesSelected) {
         alert("กรุณาเลือกไซส์เสื้อแจ็คเก็ตให้ครบทุกตัว");
         return;
@@ -558,7 +685,9 @@ function updateFinalSummary() {
       packageDiv.appendChild(poloDiv);
       for (let i = 0; i < individualItems.polo.quantity; i++) {
         const sizeDiv = document.createElement("div");
-        sizeDiv.textContent = `   - ตัวที่ ${i + 1}: ไซส์ ${selectedSizes.polo[i]}`;
+        sizeDiv.textContent = `   - ตัวที่ ${i + 1}: ไซส์ ${
+          selectedSizes.polo[i]
+        }`;
         packageDiv.appendChild(sizeDiv);
       }
     }
@@ -568,7 +697,9 @@ function updateFinalSummary() {
       packageDiv.appendChild(jacketDiv);
       for (let i = 0; i < individualItems.jacket.quantity; i++) {
         const sizeDiv = document.createElement("div");
-        sizeDiv.textContent = `   - ตัวที่ ${i + 1}: ไซส์ ${selectedSizes.jacket[i]}`;
+        sizeDiv.textContent = `   - ตัวที่ ${i + 1}: ไซส์ ${
+          selectedSizes.jacket[i]
+        }`;
         packageDiv.appendChild(sizeDiv);
       }
     }
@@ -609,7 +740,9 @@ function updateFinalSummary() {
   if (deliveryType) {
     const deliveryDiv = document.createElement("div");
     deliveryDiv.style.marginBottom = "10px";
-    deliveryDiv.textContent = `วิธีรับสินค้า: ${deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"}`;
+    deliveryDiv.textContent = `วิธีรับสินค้า: ${
+      deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"
+    }`;
     summaryDiv.appendChild(deliveryDiv);
 
     if (deliveryType === "shipping") {
@@ -621,14 +754,15 @@ function updateFinalSummary() {
 
   const totalAlert = document.createElement("div");
   totalAlert.className = "alert alert-primary";
-  totalAlert.style.cssText = "font-size: 1.7em; font-weight: bold; color: #0d6efd;";
+  totalAlert.style.cssText =
+    "font-size: 1.7em; font-weight: bold; color: #0d6efd;";
   totalAlert.textContent = `รวมทั้งสิ้น: ${finalTotal.toLocaleString()} บาท`;
   summaryDiv.appendChild(totalAlert);
 }
 
 function generateEmailHTML(orderData) {
   const orderDate = new Date();
-  
+
   let emailHTML = `
     <div style="max-width: 600px; margin: 0 auto; font-family: 'Sarabun', Arial, sans-serif; background-color: #f8f9fa; padding: 20px;">
         <div style="background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -639,10 +773,14 @@ function generateEmailHTML(orderData) {
             <div style="background-color: #f8f9fa; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
                 <h2 style="color: #007bff; font-size: 18px; margin: 0 0 20px 0; font-weight: bold;">สรุปการสั่งซื้อ</h2>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">หมายเลขอ้างอิง:</strong> <span style="color: #666;">${sanitizeText(orderData.orderRef)}</span>
+                    <strong style="color: #333;">หมายเลขอ้างอิง:</strong> <span style="color: #666;">${sanitizeText(
+                      orderData.orderRef
+                    )}</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">แพ็คเก็จ:</strong> <span style="color: #666;">${sanitizeText(orderData.packageName)}</span>
+                    <strong style="color: #333;">แพ็คเก็จ:</strong> <span style="color: #666;">${sanitizeText(
+                      orderData.packageName
+                    )}</span>
                 </div>`;
 
   if (selectedPackage === "individual") {
@@ -650,41 +788,70 @@ function generateEmailHTML(orderData) {
       emailHTML += `<div style="margin-bottom: 10px;"><strong style="color: #333;">เสื้อโปโล:</strong> <span style="color: #666;">${orderData.items.polo} ชิ้น</span></div>`;
       for (let i = 0; i < orderData.items.polo; i++) {
         if (orderData.sizes.polo && orderData.sizes.polo[i]) {
-          emailHTML += `<div style="margin-left: 20px; margin-bottom: 5px; color: #666;">- ตัวที่ ${i + 1}: ไซส์ ${sanitizeText(orderData.sizes.polo[i])}</div>`;
+          emailHTML += `<div style="margin-left: 20px; margin-bottom: 5px; color: #666;">- ตัวที่ ${
+            i + 1
+          }: ไซส์ ${sanitizeText(orderData.sizes.polo[i])}</div>`;
         }
       }
     }
     // ทำเช่นเดียวกันสำหรับ items อื่น ๆ
   } else {
     emailHTML += `<div style="margin-bottom: 15px;"><strong style="color: #333;">จำนวน:</strong> <span style="color: #666;">${orderData.quantity} แพ็คเก็จ</span></div>`;
-    if (orderData.sizes.polo && orderData.sizes.polo.length > 0 && orderData.sizes.polo[0]) {
-      emailHTML += `<div style="margin-bottom: 15px;"><strong style="color: #333;">ไซส์เสื้อโปโล:</strong> <span style="color: #666;">${sanitizeText(orderData.sizes.polo[0])}</span></div>`;
+    if (
+      orderData.sizes.polo &&
+      orderData.sizes.polo.length > 0 &&
+      orderData.sizes.polo[0]
+    ) {
+      emailHTML += `<div style="margin-bottom: 15px;"><strong style="color: #333;">ไซส์เสื้อโปโล:</strong> <span style="color: #666;">${sanitizeText(
+        orderData.sizes.polo[0]
+      )}</span></div>`;
     }
-    if (orderData.sizes.jacket && orderData.sizes.jacket.length > 0 && orderData.sizes.jacket[0]) {
-      emailHTML += `<div style="margin-bottom: 15px;"><strong style="color: #333;">ไซส์เสื้อแจ็คเก็ต:</strong> <span style="color: #666;">${sanitizeText(orderData.sizes.jacket[0])}</span></div>`;
+    if (
+      orderData.sizes.jacket &&
+      orderData.sizes.jacket.length > 0 &&
+      orderData.sizes.jacket[0]
+    ) {
+      emailHTML += `<div style="margin-bottom: 15px;"><strong style="color: #333;">ไซส์เสื้อแจ็คเก็ต:</strong> <span style="color: #666;">${sanitizeText(
+        orderData.sizes.jacket[0]
+      )}</span></div>`;
     }
   }
 
   emailHTML += `
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">วันที่สั่งซื้อ:</strong> <span style="color: #666;">${orderDate.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" })}</span>
+                    <strong style="color: #333;">วันที่สั่งซื้อ:</strong> <span style="color: #666;">${orderDate.toLocaleDateString(
+                      "th-TH",
+                      { year: "numeric", month: "long", day: "numeric" }
+                    )}</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">ชื่อ-นามสกุล:</strong> <span style="color: #666;">${sanitizeText(orderData.firstname)} ${sanitizeText(orderData.lastname)}</span>
+                    <strong style="color: #333;">ชื่อ-นามสกุล:</strong> <span style="color: #666;">${sanitizeText(
+                      orderData.firstname
+                    )} ${sanitizeText(orderData.lastname)}</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">อีเมล:</strong> <span style="color: #666;">${sanitizeText(orderData.email)}</span>
+                    <strong style="color: #333;">อีเมล:</strong> <span style="color: #666;">${sanitizeText(
+                      orderData.email
+                    )}</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">เบอร์โทร:</strong> <span style="color: #666;">${sanitizeText(orderData.phone)}</span>
+                    <strong style="color: #333;">เบอร์โทร:</strong> <span style="color: #666;">${sanitizeText(
+                      orderData.phone
+                    )}</span>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #333;">วิธีรับสินค้า:</strong> <span style="color: #666;">${orderData.deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"}</span>
+                    <strong style="color: #333;">วิธีรับสินค้า:</strong> <span style="color: #666;">${
+                      orderData.deliveryType === "pickup"
+                        ? "รับที่วิทยาลัย"
+                        : "จัดส่งทางไปรษณีย์"
+                    }</span>
                 </div>
                 <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 20px;">
                     <strong style="color: #1976d2; font-size: 18px;">ยอดรวม: ${orderData.totalAmount.toLocaleString()} บาท</strong>
                 </div>
-                <p><strong>หมายเหตุ:</strong> ${sanitizeText(orderData.notes)}</p>
+                <p><strong>หมายเหตุ:</strong> ${sanitizeText(
+                  orderData.notes
+                )}</p>
             </div>
             <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666;">
                 <p style="margin: 0;">หากมีข้อสงสัยใดๆ กรุณาติดต่อเรา</p>
@@ -731,7 +898,9 @@ async function uploadSlipViaServer(file, base64Data) {
   try {
     const uploadData = {
       file: base64Data,
-      fileName: `ORDER_${Date.now()}_${sanitizeText(document.getElementById("firstname").value.trim())}_${sanitizeText(document.getElementById("lastname").value.trim())}`,
+      fileName: `ORDER_${Date.now()}_${sanitizeText(
+        document.getElementById("firstname").value.trim()
+      )}_${sanitizeText(document.getElementById("lastname").value.trim())}`,
       type: "image/jpeg",
     };
 
@@ -767,7 +936,8 @@ function resetSubmitButtonState() {
     if (originalSubmitButtonHTML) {
       submitButton.innerHTML = originalSubmitButtonHTML;
     } else {
-      submitButton.innerHTML = '<i class="fas fa-check-circle me-2"></i> สั่งซื้อสินค้า';
+      submitButton.innerHTML =
+        '<i class="fas fa-check-circle me-2"></i> สั่งซื้อสินค้า';
     }
   }
 }
@@ -836,7 +1006,10 @@ async function submitOrder() {
     major: sanitizeText(document.getElementById("major").value),
     faculty: sanitizeText(document.getElementById("faculty").value),
     studentId: sanitizeText(document.getElementById("student-id").value.trim()),
-    address: deliveryType === "shipping" ? sanitizeText(document.getElementById("address").value.trim()) : "",
+    address:
+      deliveryType === "shipping"
+        ? sanitizeText(document.getElementById("address").value.trim())
+        : "",
     deliveryType: deliveryType,
     totalAmount: deliveryType === "shipping" ? totalAmount + 50 : totalAmount,
     items: generateItemsSummary(),
@@ -845,32 +1018,42 @@ async function submitOrder() {
 
   let summaryText = `แพ็คเกจ: ${orderData.packageName}\n`;
   if (selectedPackage === "individual") {
-    if (orderData.items.polo > 0) summaryText += `เสื้อโปโล: ${orderData.items.polo} ชิ้น\n`;
-    if (orderData.items.jacket > 0) summaryText += `เสื้อแจ็คเก็ต: ${orderData.items.jacket} ชิ้น\n`;
-    if (orderData.items.belt > 0) summaryText += `หัวเข็มขัด: ${orderData.items.belt} ชิ้น\n`;
-    if (orderData.items.tung_ting > 0) summaryText += `ตุ้งติ้ง: ${orderData.items.tung_ting} ชิ้น\n`;
-    if (orderData.items.tie_clip > 0) summaryText += `ที่หนีบเนคไท: ${orderData.items.tie_clip} ชิ้น\n`;
+    if (orderData.items.polo > 0)
+      summaryText += `เสื้อโปโล: ${orderData.items.polo} ชิ้น\n`;
+    if (orderData.items.jacket > 0)
+      summaryText += `เสื้อแจ็คเก็ต: ${orderData.items.jacket} ชิ้น\n`;
+    if (orderData.items.belt > 0)
+      summaryText += `หัวเข็มขัด: ${orderData.items.belt} ชิ้น\n`;
+    if (orderData.items.tung_ting > 0)
+      summaryText += `ตุ้งติ้ง: ${orderData.items.tung_ting} ชิ้น\n`;
+    if (orderData.items.tie_clip > 0)
+      summaryText += `ที่หนีบเนคไท: ${orderData.items.tie_clip} ชิ้น\n`;
   } else {
     summaryText += `จำนวน: ${orderData.quantity} แพ็คเกจ\n`;
   }
   summaryText += `\nชื่อ-นามสกุล: ${orderData.firstname} ${orderData.lastname}\n`;
   summaryText += `อีเมล: ${orderData.email}\n`;
   summaryText += `เบอร์โทร: ${orderData.phone}\n`;
-  summaryText += `วิธีรับสินค้า: ${orderData.deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"}\n`;
+  summaryText += `วิธีรับสินค้า: ${
+    orderData.deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"
+  }\n`;
   summaryText += `รวมทั้งหมด: ${orderData.totalAmount.toLocaleString()} บาท\n\n`;
   summaryText += orderData.notes ? `หมายเหตุ: ${orderData.notes}` : "";
 
   const result = await Swal.fire({
     title: "กรุณาตรวจสอบข้อมูล",
-    html: `<pre style="text-align: left;">${sanitizeText(summaryText).replace(/\n/g, "<br>")}</pre>`,
+    html: `<pre style="text-align: left;">${sanitizeText(summaryText).replace(
+      /\n/g,
+      "<br>"
+    )}</pre>`,
     icon: "info",
     showCancelButton: true,
     confirmButtonText: "ยืนยันสั่งซื้อ",
     cancelButtonText: "แก้ไขข้อมูล",
     width: 600,
     customClass: {
-      popup: 'swal2-popup-custom'
-    }
+      popup: "swal2-popup-custom",
+    },
   });
 
   if (!result.isConfirmed) {
@@ -880,13 +1063,15 @@ async function submitOrder() {
   const slip = document.getElementById("slip").files[0];
   if (!slip) {
     alert("กรุณาเลือกรูปภาพสลิปการโอนเงิน");
-    document.getElementById("slip-error").textContent = "กรุณาอัปโหลดสลิปการโอนเงิน";
+    document.getElementById("slip-error").textContent =
+      "กรุณาอัปโหลดสลิปการโอนเงิน";
     return;
   }
   document.getElementById("slip-error").textContent = "";
 
   submitButton.disabled = true;
-  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> กำลังดำเนินการ...';
+  submitButton.innerHTML =
+    '<i class="fas fa-spinner fa-spin me-2"></i> กำลังดำเนินการ...';
 
   showLoadingMessage("กำลังตรวจสอบข้อมูล...");
 
@@ -895,7 +1080,10 @@ async function submitOrder() {
     try {
       const compressedImage = await compressImage(slip);
       showLoadingMessage("กำลังโหลด...");
-      const imageUploadResult = await uploadSlipViaServer(slip, compressedImage);
+      const imageUploadResult = await uploadSlipViaServer(
+        slip,
+        compressedImage
+      );
 
       if (imageUploadResult.status === "success") {
         orderData.slipUrl = imageUploadResult.fileUrl;
@@ -911,8 +1099,8 @@ async function submitOrder() {
 
       const continueAnyway = confirm(
         "ไม่สามารถอัปโหลดรูปภาพสลิปได้: " +
-        error.message +
-        "\n\nต้องการดำเนินการส่งคำสั่งซื้อต่อหรือไม่? (คุณสามารถส่งรูปสลิปทาง Email ได้)"
+          error.message +
+          "\n\nต้องการดำเนินการส่งคำสั่งซื้อต่อหรือไม่? (คุณสามารถส่งรูปสลิปทาง Email ได้)"
       );
 
       if (continueAnyway) {
@@ -934,7 +1122,9 @@ async function submitOrder() {
 function generateOrderRef() {
   const orderDate = new Date();
   const timestamp = orderDate.getTime();
-  return `SMO${orderDate.getFullYear()}${(orderDate.getMonth() + 1).toString().padStart(2, "0")}${timestamp}`;
+  return `SMO${orderDate.getFullYear()}${(orderDate.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}${timestamp}`;
 }
 
 function showSuccessPage(orderData) {
@@ -962,7 +1152,9 @@ function showSuccessPage(orderData) {
         if (orderData.sizes.polo && orderData.sizes.polo[i]) {
           const sizeP = document.createElement("p");
           sizeP.className = "ms-3";
-          sizeP.textContent = `- ตัวที่ ${i + 1}: ไซส์ ${orderData.sizes.polo[i]}`;
+          sizeP.textContent = `- ตัวที่ ${i + 1}: ไซส์ ${
+            orderData.sizes.polo[i]
+          }`;
           summaryDiv.appendChild(sizeP);
         }
       }
@@ -972,12 +1164,20 @@ function showSuccessPage(orderData) {
     const qtyP = document.createElement("p");
     qtyP.textContent = `จำนวน: ${orderData.quantity} แพ็คเกจ`;
     summaryDiv.appendChild(qtyP);
-    if (orderData.sizes.polo && orderData.sizes.polo.length > 0 && orderData.sizes.polo[0]) {
+    if (
+      orderData.sizes.polo &&
+      orderData.sizes.polo.length > 0 &&
+      orderData.sizes.polo[0]
+    ) {
       const poloSizeP = document.createElement("p");
       poloSizeP.textContent = `ไซส์เสื้อโปโล: ${orderData.sizes.polo[0]}`;
       summaryDiv.appendChild(poloSizeP);
     }
-    if (orderData.sizes.jacket && orderData.sizes.jacket.length > 0 && orderData.sizes.jacket[0]) {
+    if (
+      orderData.sizes.jacket &&
+      orderData.sizes.jacket.length > 0 &&
+      orderData.sizes.jacket[0]
+    ) {
       const jacketSizeP = document.createElement("p");
       jacketSizeP.textContent = `ไซส์เสื้อแจ็คเก็ต: ${orderData.sizes.jacket[0]}`;
       summaryDiv.appendChild(jacketSizeP);
@@ -986,7 +1186,11 @@ function showSuccessPage(orderData) {
 
   const orderDate = new Date();
   const dateP = document.createElement("p");
-  dateP.textContent = `วันที่สั่งซื้อ: ${orderDate.toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric" })}`;
+  dateP.textContent = `วันที่สั่งซื้อ: ${orderDate.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })}`;
   summaryDiv.appendChild(dateP);
 
   const nameP = document.createElement("p");
@@ -1002,7 +1206,9 @@ function showSuccessPage(orderData) {
   summaryDiv.appendChild(phoneP);
 
   const deliveryP = document.createElement("p");
-  deliveryP.textContent = `วิธีรับสินค้า: ${orderData.deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"}`;
+  deliveryP.textContent = `วิธีรับสินค้า: ${
+    orderData.deliveryType === "pickup" ? "รับที่วิทยาลัย" : "จัดส่งทางไปรษณีย์"
+  }`;
   summaryDiv.appendChild(deliveryP);
 
   const totalP = document.createElement("p");
@@ -1349,24 +1555,24 @@ function filterProducts(type) {
     document.getElementById("selection-details").style.display = "none";
   }
 
-  const buttons = document.querySelectorAll('#product-btn button');
-  buttons.forEach(button => {
-    button.classList.remove('btn-primary');
-    button.classList.add('btn-outline-primary');
+  const buttons = document.querySelectorAll("#product-btn button");
+  buttons.forEach((button) => {
+    button.classList.remove("btn-primary");
+    button.classList.add("btn-outline-primary");
   });
 
   let activeBtn;
-  if (type === 'all') {
-    activeBtn = document.querySelector('#product-btn button:nth-child(1)');
-  } else if (type === 'individual') {
-    activeBtn = document.querySelector('#product-btn button:nth-child(2)');
-  } else if (type === 'set') {
-    activeBtn = document.querySelector('#product-btn button:nth-child(3)');
+  if (type === "all") {
+    activeBtn = document.querySelector("#product-btn button:nth-child(1)");
+  } else if (type === "individual") {
+    activeBtn = document.querySelector("#product-btn button:nth-child(2)");
+  } else if (type === "set") {
+    activeBtn = document.querySelector("#product-btn button:nth-child(3)");
   }
 
   if (activeBtn) {
-    activeBtn.classList.add('btn-primary');
-    activeBtn.classList.remove('btn-outline-primary');
+    activeBtn.classList.add("btn-primary");
+    activeBtn.classList.remove("btn-outline-primary");
   }
 }
 
@@ -1418,11 +1624,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-  const textarea = document.getElementById('notes');
+document.addEventListener("DOMContentLoaded", function () {
+  const textarea = document.getElementById("notes");
   if (textarea) {
-    textarea.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') {
+    textarea.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
         event.preventDefault();
       }
     });
@@ -1430,13 +1636,13 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function goBack() {
-  document.getElementById('checkout-section').style.display = 'none';
-  document.getElementById('shopping-section').style.display = 'block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById("checkout-section").style.display = "none";
+  document.getElementById("shopping-section").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-const carousel = document.querySelector('#carouselIndividual');
+const carousel = document.querySelector("#carouselIndividual");
 const bsCarousel = new bootstrap.Carousel(carousel, {
   interval: 1500,
-  ride: 'carousel'
+  ride: "carousel",
 });
