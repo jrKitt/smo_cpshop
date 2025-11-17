@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ระบบดูสลิปการโอนเงิน - สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
+        crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <title>ดูสลิปการโอนเงิน - CPSHOP</title>
+    <link rel="icon" type="image/x-icon" href="./image/SMOLOGO.webp">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .slip-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .slip-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .slip-image {
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .search-box {
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+        }
+
+        .search-box:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .order-ref-badge {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .no-slips {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .stats-card {
+            background: linear-gradient(45deg, #0d6efd, #0056b3);
+            color: white;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.8rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="login-overlay" style="display: none;">
+        <div class="login-modal">
+            <div class="text-center mb-4">
+                <img src="./image/SMOLOGO.webp" alt="SMOCP Logo" width="60" height="60" class="mb-3">
+                <h4>เข้าสู่ระบบดูสลิป</h4>
+                <p class="text-muted">กรุณาเข้าสู่ระบบเพื่อดูสลิปการโอนเงิน</p>
+            </div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">ชื่อผู้ใช้</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">รหัสผ่าน</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <div id="loginError" class="alert alert-danger" style="display: none;"></div>
+                <button type="submit" class="btn btn-primary w-100">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #30319D;">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+                <img src="./image/SMOLOGO.webp" alt="SMOCP Logo" width="30" height="30" class="me-2">
+                SMOCP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">หน้าหลัก</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">ปฏิทินกิจกรรม</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">บริการสำหรับนักศึกษา</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop">ร้านค้าสโมสร</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tracking">ติดตามสินค้า</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/slips">ดูสลิป</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="https://www.facebook.com/profile.php?id=100083108863117&mibextid=wwXIfr&rdid=SjHPRnXMQKJ5FEDh&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1BUay9x1MG%2F%3Fmibextid%3DwwXIfr"
+                            target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ปุ่มออกจากระบบ -->
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>ออกจากระบบ
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+
+        <!-- ค้นหา -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="text" id="searchInput" class="form-control search-box"
+                                    placeholder="ค้นหาด้วยหมายเลขคำสั่งซื้อ (Order Reference)">
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-primary w-100" onclick="searchSlips()">
+                                    <i class="fas fa-search me-2"></i>ค้นหา
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button class="btn btn-outline-secondary me-2" onclick="showAllSlips()">
+                                    <i class="fas fa-list me-2"></i>แสดงทั้งหมด
+                                </button>
+                                <button class="btn btn-outline-info me-2" onclick="filterToday()">
+                                    <i class="fas fa-calendar-day me-2"></i>วันนี้
+                                </button>
+                                <button class="btn btn-outline-success" onclick="refreshData()">
+                                    <i class="fas fa-sync-alt me-2"></i>รีเฟรช
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+            <p class="mt-3">กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <!-- แสดงสลิป -->
+        <div id="slipsContainer" class="row">
+            <!-- สลิปจะแสดงที่นี่ -->
+        </div>
+
+        <!-- ไม่มีสลิป -->
+        <div id="noSlips" class="no-slips" style="display: none;">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <h4>ไม่พบสลิป</h4>
+            <p>ยังไม่มีสลิปการโอนเงินในระบบ หรือไม่พบสลิปที่ค้นหา</p>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับดูรูปใหญ่ -->
+    <div class="modal fade" id="slipModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">สลิปการโอนเงิน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" class="modal-image" src="" alt="สลิป">
+                    <div class="mt-3">
+                        <p><strong>หมายเลขคำสั่งซื้อ:</strong> <span id="modalOrderRef"></span></p>
+                        <p><strong>วันที่อัพโหลด:</strong> <span id="modalDate"></span></p>
+                        <p><strong>ชื่อไฟล์:</strong> <span id="modalFileName"></span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="downloadLink" class="btn btn-primary" download>
+                        <i class="fas fa-download me-2"></i>ดาวน์โหลด
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allSlips = [];
+
+        // ตรวจสอบการ login
+        function checkLogin() {
+            const loginTime = getCookie('slipLoginTime');
+            const currentTime = new Date().getTime();
+
+            if (!loginTime || (currentTime - parseInt(loginTime)) > 3600000) { // 1 ชั่วโมง = 3600000 ms
+                showLoginModal();
+                return false;
+            }
+            return true;
+        }
+
+        // แสดง login modal
+        function showLoginModal() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        // ซ่อน login modal
+        function hideLoginModal() {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        // จัดการ login form
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (username === 'smocp' && password === 'smocp.com') {
+                // เก็บ cookie ไว้ 1 ชั่วโมง
+                setCookie('slipLoginTime', new Date().getTime(), 1);
+                hideLoginModal();
+                loadSlips();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เข้าสู่ระบบสำเร็จ!',
+                    text: 'ยินดีต้อนรับเข้าสู่ระบบดูสลิป',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                errorDiv.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // ตั้งค่า Cookie
+        function setCookie(name, value, hours) {
+            const expires = new Date();
+            expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+        }
+
+        // อ่านค่า Cookie
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // โหลดข้อมูลสลิปทั้งหมด
+        async function loadSlips() {
+            if (!checkLogin()) return;
+            showLoading();
+            try {
+                const response = await fetch('/api/slips');
+                allSlips = await response.json();
+                displaySlips(allSlips);
+                updateStats();
+            } catch (error) {
+                console.error('Error loading slips:', error);
+                showError('ไม่สามารถโหลดข้อมูลสลิปได้');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // แสดงสลิป
+        function displaySlips(slips) {
+            const container = document.getElementById('slipsContainer');
+            const noSlips = document.getElementById('noSlips');
+
+            if (slips.length === 0) {
+                container.innerHTML = '';
+                noSlips.style.display = 'block';
+                return;
+            }
+
+            noSlips.style.display = 'none';
+
+            container.innerHTML = slips.map(slip => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card slip-card h-100" onclick="showSlipModal('${slip.orderRef}')">
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <img src="${slip.filePath}" class="slip-image w-100" alt="สลิป" 
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg=='">
+                            </div>
+                            <h6 class="card-title text-center">
+                                <span class="badge bg-primary order-ref-badge">${slip.orderRef}</span>
+                            </h6>
+                            <p class="card-text text-center text-muted small">
+                                <i class="fas fa-calendar me-1"></i>
+                                ${formatDate(slip.uploadDate)}
+                            </p>
+                            <p class="card-text text-center text-muted small">
+                                <i class="fas fa-file me-1"></i>
+                                ${slip.originalFileName}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // แสดง Modal
+        function showSlipModal(orderRef) {
+            const slip = allSlips.find(s => s.orderRef === orderRef);
+            if (!slip) return;
+
+            document.getElementById('modalTitle').textContent = `สลิปการโอนเงิน - ${orderRef}`;
+            document.getElementById('modalImage').src = slip.filePath;
+            document.getElementById('modalOrderRef').textContent = slip.orderRef;
+            document.getElementById('modalDate').textContent = formatDate(slip.uploadDate);
+            document.getElementById('modalFileName').textContent = slip.originalFileName;
+            document.getElementById('downloadLink').href = slip.filePath;
+            document.getElementById('downloadLink').download = slip.originalFileName;
+
+            const modal = new bootstrap.Modal(document.getElementById('slipModal'));
+            modal.show();
+        }
+
+        // ค้นหาสลิป
+        function searchSlips() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!searchTerm) {
+                displaySlips(allSlips);
+                return;
+            }
+
+            const filteredSlips = allSlips.filter(slip =>
+                slip.orderRef.toLowerCase().includes(searchTerm) ||
+                slip.originalFileName.toLowerCase().includes(searchTerm)
+            );
+            displaySlips(filteredSlips);
+        }
+
+        // แสดงทั้งหมด
+        function showAllSlips() {
+            document.getElementById('searchInput').value = '';
+            displaySlips(allSlips);
+        }
+
+        // กรองวันนี้
+        function filterToday() {
+            const today = new Date().toDateString();
+            const todaySlips = allSlips.filter(slip =>
+                new Date(slip.uploadDate).toDateString() === today
+            );
+            displaySlips(todaySlips);
+        }
+
+        // รีเฟรชข้อมูล
+        function refreshData() {
+            loadSlips();
+        }
+
+        // อัพเดทสถิติ
+        function updateStats() {
+            const total = allSlips.length;
+            const today = new Date().toDateString();
+            const todayCount = allSlips.filter(slip =>
+                new Date(slip.uploadDate).toDateString() === today
+            ).length;
+
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            const weekCount = allSlips.filter(slip =>
+                new Date(slip.uploadDate) >= weekAgo
+            ).length;
+
+            document.getElementById('totalSlips').textContent = total;
+            document.getElementById('todaySlips').textContent = todayCount;
+            document.getElementById('weekSlips').textContent = weekCount;
+        }
+
+        // จัดรูปแบบวันที่
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // แสดง Loading
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('slipsContainer').style.display = 'none';
+            document.getElementById('noSlips').style.display = 'none';
+        }
+
+        // ซ่อน Loading
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('slipsContainer').style.display = 'flex';
+        }
+
+        // แสดงข้อผิดพลาด
+        function showError(message) {
+            alert(message);
+        }
+
+        // Enter key ในช่องค้นหา
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchSlips();
+            }
+        });
+
+        // เพิ่มปุ่มออกจากระบบ
+        function logout() {
+            setCookie('slipLoginTime', '', -1); // ลบ cookie
+            showLoginModal();
+            document.getElementById('slipsContainer').innerHTML = '';
+            document.getElementById('totalSlips').textContent = '0';
+            document.getElementById('todaySlips').textContent = '0';
+            document.getElementById('weekSlips').textContent = '0';
+
+            Swal.fire({
+                icon: 'info',
+                title: 'ออกจากระบบแล้ว',
+                text: 'ขอบคุณที่ใช้บริการ',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+
+        // โหลดข้อมูลเมื่อเริ่มต้น
+        document.addEventListener('DOMContentLoaded', function () {
+            if (checkLogin()) {
+                loadSlips();
+            }
+        });
+    </script>
+</body>
+
+</html>

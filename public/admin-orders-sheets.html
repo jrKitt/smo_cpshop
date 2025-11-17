@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - จัดการคำสั่งซื้อ | CPSHOP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-store me-2"></i>CPSHOP Admin
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/shop">กลับไปร้านค้า</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-clipboard-list me-2"></i>จัดการคำสั่งซื้อ</h2>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-success" onclick="refreshData()">
+                            <i class="fas fa-sync-alt me-2"></i>รีเฟรช
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="openGoogleSheets()">
+                            <i class="fas fa-external-link-alt me-2"></i>เปิด Google Sheets
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div id="loading" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+                        </div>
+
+                        <div id="orders-content" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <input type="text" id="search-input" class="form-control"
+                                        placeholder="ค้นหาด้วยชื่อ, อีเมล หรือหมายเลขคำสั่งซื้อ...">
+                                </div>
+                                <div class="col-md-3">
+                                    <select id="status-filter" class="form-select">
+                                        <option value="">ทุกสถานะ</option>
+                                        <option value="pending">รอยืนยัน</option>
+                                        <option value="confirmed">ยืนยันแล้ว</option>
+                                        <option value="preparing">กำลังเตรียม</option>
+                                        <option value="shipping">จัดส่งแล้ว</option>
+                                        <option value="delivered">ส่งสำเร็จ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-end">
+                                        <span class="badge bg-info fs-6">ทั้งหมด: <span id="total-orders">0</span>
+                                            รายการ</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>หมายเลขคำสั่งซื้อ</th>
+                                            <th>ชื่อลูกค้า</th>
+                                            <th>แพ็คเก็จ</th>
+                                            <th>จำนวนเงิน</th>
+                                            <th>สถานะ</th>
+                                            <th>วันที่สั่งซื้อ</th>
+                                            <th>การจัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orders-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="no-orders" class="text-center py-5" style="display: none;">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">ไม่มีคำสั่งซื้อที่ตรงกับเงื่อนไขการค้นหา</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">รายละเอียดคำสั่งซื้อ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="order-detail-content">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">อัปเดตสถานะคำสั่งซื้อ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="update-status-form">
+                        <input type="hidden" id="update-order-ref">
+                        <div class="mb-3">
+                            <label class="form-label">สถานะใหม่</label>
+                            <select id="new-status" class="form-select" required>
+                                <option value="">เลือกสถานะ</option>
+                                <option value="pending">รอยืนยัน</option>
+                                <option value="confirmed">ยืนยันแล้ว</option>
+                                <option value="preparing">กำลังเตรียมสินค้า</option>
+                                <option value="shipping">จัดส่งแล้ว</option>
+                                <option value="delivered">ส่งสำเร็จ</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">รหัสติดตามพัสดุ (ถ้ามี)</label>
+                            <input type="text" id="tracking-code" class="form-control" placeholder="ใส่รหัสติดตามพัสดุ">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary" onclick="updateOrderStatus()">
+                        <i class="fas fa-save me-2"></i>บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allOrders = [];
+        let filteredOrders = [];
+
+        // Load orders when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            loadOrders();
+
+            // Add event listeners for search and filter
+            document.getElementById('search-input').addEventListener('input', filterOrders);
+            document.getElementById('status-filter').addEventListener('change', filterOrders);
+        });
+
+        async function loadOrders() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('orders-content').style.display = 'none';
+
+                const response = await fetch('/admin/orders');
+                const data = await response.json();
+
+                if (data.success) {
+                    allOrders = data.orders;
+                    filteredOrders = [...allOrders];
+                    displayOrders();
+                } else {
+                    throw new Error(data.error || 'ไม่สามารถโหลดข้อมูลได้');
+                }
+
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถโหลดข้อมูลคำสั่งซื้อได้: ' + error.message,
+                    footer: 'กรุณาตรวจสอบการตั้งค่า Google Sheets'
+                });
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('orders-content').style.display = 'block';
+            }
+        }
+
+        function displayOrders() {
+            const tableBody = document.getElementById('orders-table-body');
+            const totalOrders = document.getElementById('total-orders');
+            const noOrders = document.getElementById('no-orders');
+
+            totalOrders.textContent = filteredOrders.length;
+
+            if (filteredOrders.length === 0) {
+                tableBody.innerHTML = '';
+                noOrders.style.display = 'block';
+                return;
+            }
+
+            noOrders.style.display = 'none';
+
+            tableBody.innerHTML = filteredOrders.map(order => {
+                const statusBadge = getStatusBadge(order.status);
+                const orderDate = new Date(order.orderDate).toLocaleDateString('th-TH');
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${order.orderNumber}</strong>
+                            ${order.trackingCode ? `<br><small class="text-muted">Tracking: ${order.trackingCode}</small>` : ''}
+                        </td>
+                        <td>
+                            <div>${order.customerName}</div>
+                            <small class="text-muted">${order.email}</small>
+                        </td>
+                        <td>${order.packageName}</td>
+                        <td><strong>${order.totalAmount?.toLocaleString()} บาท</strong></td>
+                        <td>${statusBadge}</td>
+                        <td>${orderDate}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" 
+                                        onclick="viewOrderDetail('${order.orderNumber}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-success" 
+                                        onclick="showUpdateStatusModal('${order.orderNumber}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatusBadge(status) {
+            const statusConfig = {
+                'pending': { class: 'warning', text: 'รอยืนยัน' },
+                'confirmed': { class: 'info', text: 'ยืนยันแล้ว' },
+                'preparing': { class: 'primary', text: 'กำลังเตรียม' },
+                'shipping': { class: 'warning', text: 'จัดส่งแล้ว' },
+                'delivered': { class: 'success', text: 'ส่งสำเร็จ' }
+            };
+
+            const config = statusConfig[status] || { class: 'secondary', text: status };
+            return `<span class="badge bg-${config.class}">${config.text}</span>`;
+        }
+
+        function filterOrders() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+
+            filteredOrders = allOrders.filter(order => {
+                const matchesSearch = !searchTerm ||
+                    order.orderNumber.toLowerCase().includes(searchTerm) ||
+                    order.customerName.toLowerCase().includes(searchTerm) ||
+                    order.email.toLowerCase().includes(searchTerm);
+
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            displayOrders();
+        }
+
+        function refreshData() {
+            loadOrders();
+        }
+
+        function openGoogleSheets() {
+            // This would need to be configured with the actual Google Sheets URL
+            Swal.fire({
+                icon: 'info',
+                title: 'เปิด Google Sheets',
+                text: 'กรุณาเปิด Google Sheets ของคุณแยกต่างหาก',
+                footer: 'URL จะถูกกำหนดในการตั้งค่าระบบ'
+            });
+        }
+
+        async function viewOrderDetail(orderRef) {
+            try {
+                const order = allOrders.find(o => o.orderNumber === orderRef);
+                if (!order) return;
+
+                document.getElementById('order-detail-content').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">ข้อมูลลูกค้า</h6>
+                            <p><strong>ชื่อ:</strong> ${order.customerName}</p>
+                            <p><strong>อีเมล:</strong> ${order.email}</p>
+                            <p><strong>เบอร์โทร:</strong> ${order.phone}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">ข้อมูลการสั่งซื้อ</h6>
+                            <p><strong>หมายเลข:</strong> ${order.orderNumber}</p>
+                            <p><strong>แพ็คเก็จ:</strong> ${order.packageName}</p>
+                            <p><strong>ยอดรวม:</strong> ${order.totalAmount?.toLocaleString()} บาท</p>
+                            <p><strong>การจัดส่ง:</strong> ${order.deliveryType === 'shipping' ? 'ไปรษณีย์' : 'รับที่วิทยาลัย'}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary">สถานะและการติดตาม</h6>
+                            <p><strong>สถานะ:</strong> ${getStatusBadge(order.status)}</p>
+                            ${order.trackingCode ? `<p><strong>รหัสติดตาม:</strong> ${order.trackingCode}</p>` : ''}
+                            <p><strong>วันที่สั่ง:</strong> ${new Date(order.orderDate).toLocaleString('th-TH')}</p>
+                        </div>
+                    </div>
+                `;
+
+                new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
+
+            } catch (error) {
+                console.error('Error viewing order detail:', error);
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดรายละเอียดคำสั่งซื้อได้', 'error');
+            }
+        }
+
+        function showUpdateStatusModal(orderRef) {
+            document.getElementById('update-order-ref').value = orderRef;
+            document.getElementById('new-status').value = '';
+            document.getElementById('tracking-code').value = '';
+
+            new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
+        }
+
+        async function updateOrderStatus() {
+            const orderRef = document.getElementById('update-order-ref').value;
+            const newStatus = document.getElementById('new-status').value;
+            const trackingCode = document.getElementById('tracking-code').value;
+
+            if (!newStatus) {
+                Swal.fire('กรุณาเลือกสถานะ', '', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/update-order-status/${orderRef}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        trackingCode: trackingCode
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: 'อัปเดตสถานะเรียบร้อยแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    bootstrap.Modal.getInstance(document.getElementById('updateStatusModal')).hide();
+                    loadOrders(); // Refresh data
+                } else {
+                    throw new Error(data.error);
+                }
+
+            } catch (error) {
+                console.error('Error updating status:', error);
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

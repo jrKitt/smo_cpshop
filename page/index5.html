@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP Store - ระบบขายของสโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .package-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .package-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .package-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .package-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .package-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .size-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .size-option {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-option:hover {
+            border-color: #667eea;
+        }
+
+        .size-option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .summary h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .delivery-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .delivery-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .delivery-option:hover {
+            border-color: #667eea;
+        }
+
+        .delivery-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-upload.has-file {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .progress-step {
+            background: #e0e0e0;
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-step.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .progress-step.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .item-selector {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .quantity-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .package-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .delivery-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ CP Store</h1>
+            <p>ระบบขายของสโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-step active" id="step1-indicator">เลือกสินค้า</div>
+            <div class="progress-step" id="step2-indicator">ข้อมูลการจัดส่ง</div>
+            <div class="progress-step" id="step3-indicator">สรุปและชำระเงิน</div>
+            <div class="progress-step" id="step4-indicator">เสร็จสิ้น</div>
+        </div>
+
+        <!-- Step 1: Product Selection -->
+        <div class="step active" id="step1">
+            <div class="card">
+                <h2>🛒 เลือกแพ็คเกจสินค้า</h2>
+                <div class="package-grid">
+                    <div class="package-card" data-package="cp">
+                        <h3>CP Package</h3>
+                        <p>เลือกซื้อสินค้าแต่ละแบบตามต้องการ</p>
+                        <div class="price">เริ่มต้น ฿0</div>
+                    </div>
+                    <div class="package-card" data-package="cpset-m1">
+                        <h3>CPSET M1</h3>
+                        <p>ที่หนีบเนคไท + หัวเข็มขัด</p>
+                        <div class="price">฿350</div>
+                    </div>
+                    <div class="package-card" data-package="cpset-w1">
+                        <h3>CPSET W1</h3>
+                        <p>ตุ้งติ้ง + หัวเข็มขัด</p>
+                        <div class="price">฿320</div>
+                    </div>
+                    <div class="package-card" data-package="dekcom">
+                        <h3>Dekcom SET</h3>
+                        <p>เสื้อโปโล + แจ็คเก็ต</p>
+                        <div class="price">฿580</div>
+                    </div>
+                    <div class="package-card" data-package="full">
+                        <h3>Full Collection</h3>
+                        <p>ได้ทุกสินค้า</p>
+                        <div class="price">฿900</div>
+                    </div>
+                </div>
+
+                <!-- CP Package Items -->
+                <div id="cp-items" style="display: none;">
+                    <h3>เลือกสินค้าที่ต้องการ</h3>
+                    
+                    <div class="item-selector">
+                        <label>
+                            <input type="checkbox" id="polo-check"> เสื้อโปโล (฿180/ตัว)
+                        </label>
+                        <div id="polo-options" style="display: none;">
+                            <div class="quantity-selector">
+                                <span>จำนวน:</span>
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('polo', -1)">-</button>
+                                <input type="number" id="polo-qty" class="quantity-input" value="1" min="1" onchange="updatePoloSizes()">
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('polo', 1)">+</button>
+                            </div>
+                            <div id="polo-sizes"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-selector">
+                        <label>
+                            <input type="checkbox" id="jacket-check"> แจ็คเก็ต (฿280/ตัว)
+                        </label>
+                        <div id="jacket-options" style="display: none;">
+                            <div class="quantity-selector">
+                                <span>จำนวน:</span>
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('jacket', -1)">-</button>
+                                <input type="number" id="jacket-qty" class="quantity-input" value="1" min="1" onchange="updateJacketSizes()">
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('jacket', 1)">+</button>
+                            </div>
+                            <div id="jacket-sizes"></div>
+                        </div>
+                    </div>
+
+                    <div class="item-selector">
+                        <label>
+                            <input type="checkbox" id="keychain-check"> ตุ้งติ้ง (฿80/ชิ้น)
+                        </label>
+                        <div id="keychain-options" style="display: none;">
+                            <div class="quantity-selector">
+                                <span>จำนวน:</span>
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('keychain', -1)">-</button>
+                                <input type="number" id="keychain-qty" class="quantity-input" value="1" min="1">
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('keychain', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-selector">
+                        <label>
+                            <input type="checkbox" id="tie-clip-check"> ที่หนีบเนคไท (฿120/ชิ้น)
+                        </label>
+                        <div id="tie-clip-options" style="display: none;">
+                            <div class="quantity-selector">
+                                <span>จำนวน:</span>
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('tie-clip', -1)">-</button>
+                                <input type="number" id="tie-clip-qty" class="quantity-input" value="1" min="1">
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('tie-clip', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-selector">
+                        <label>
+                            <input type="checkbox" id="belt-head-check"> หัวเข็มขัด (฿150/ชิ้น)
+                        </label>
+                        <div id="belt-head-options" style="display: none;">
+                            <div class="quantity-selector">
+                                <span>จำนวน:</span>
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('belt-head', -1)">-</button>
+                                <input type="number" id="belt-head-qty" class="quantity-input" value="1" min="1">
+                                <button type="button" class="quantity-btn" onclick="changeQuantity('belt-head', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Set Package Sizes -->
+                <div id="set-sizes" style="display: none;">
+                    <div id="set-polo-sizes" style="display: none;">
+                        <h4>ไซส์เสื้อโปโล</h4>
+                        <div class="quantity-selector">
+                            <span>จำนวน:</span>
+                            <button type="button" class="quantity-btn" onclick="changeSetQuantity(-1)">-</button>
+                            <input type="number" id="set-qty" class="quantity-input" value="1" min="1" onchange="updateSetSizes()">
+                            <button type="button" class="quantity-btn" onclick="changeSetQuantity(1)">+</button>
+                        </div>
+                        <div id="set-polo-size-options"></div>
+                    </div>
+
+                    <div id="set-jacket-sizes" style="display: none;">
+                        <h4>ไซส์แจ็คเก็ต</h4>
+                        <div id="set-jacket-size-options"></div>
+                    </div>
+                </div>
+
+                <div class="summary">
+                    <h3>💰 สรุปยอดชำระ</h3>
+                    <div id="order-summary"></div>
+                    <div id="total-price" style="font-size: 1.2em; font-weight: bold; color: #e74c3c; margin-top: 10px;"></div>
+                </div>
+
+                <button class="btn" onclick="nextStep()" id="next-btn" disabled>ถัดไป</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Delivery Information -->
+        <div class="step" id="step2">
+            <div class="card">
+                <h2>📦 ข้อมูลการจัดส่ง</h2>
+                
+                <div class="delivery-options">
+                    <div class="delivery-option" data-delivery="pickup">
+                        <h3>รับที่วิทยาลัย</h3>
+                        <p>ไม่มีค่าจัดส่ง</p>
+                        <div class="price">ฟรี</div>
+                    </div>
+                    <div class="delivery-option" data-delivery="shipping">
+                        <h3>จัดส่งทางไปรษณีย์</h3>
+                        <p>มีค่าจัดส่ง</p>
+                        <div class="price">+฿50</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">📧 อีเมล *</label>
+                    <input type="email" id="email" required>
+                    <div class="error" id="email-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="firstname">👤 ชื่อ *</label>
+                    <input type="text" id="firstname" required>
+                    <div class="error" id="firstname-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastname">👤 นามสกุล *</label>
+                    <input type="text" id="lastname" required>
+                    <div class="error" id="lastname-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">📱 เบอร์โทรศัพท์ *</label>
+                    <input type="tel" id="phone" required>
+                    <div class="error" id="phone-error"></div>
+                </div>
+
+                <div id="shipping-address" style="display: none;">
+                    <div class="form-group">
+                        <label for="address">🏠 ที่อยู่สำหรับการจัดส่ง *</label>
+                        <textarea id="address" rows="4" required></textarea>
+                        <div class="error" id="address-error"></div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" onclick="prevStep()">กลับ</button>
+                <button class="btn" onclick="nextStep()" id="next-btn-2" disabled>ถัดไป</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="step" id="step3">
+            <div class="card">
+                <h2>💳 สรุปและชำระเงิน</h2>
+                
+                <div class="summary">
+                    <h3>📋 สรุปรายการสั่งซื้อ</h3>
+                    <div id="final-summary"></div>
+                </div>
+
+                <div class="summary">
+                    <h3>👤 ข้อมูลผู้สั่ง</h3>
+                    <div id="customer-info"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="slip-upload">📄 อัปโหลดสลิปการโอนเงิน *</label>
+                    <div class="file-upload" onclick="document.getElementById('slip-file').click()">
+                        <input type="file" id="slip-file" accept="image/*" style="display: none;" onchange="handleFileUpload(this)">
+                        <div id="upload-text">
+                            <p>📸 คลิกเพื่อเลือกไฟล์สลิป</p>
+                            <p style="font-size: 14px; color: #666;">รองรับไฟล์ JPG, PNG</p>
+                        </div>
+                    </div>
+                    <div class="error" id="slip-error"></div>
+                </div>
+
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                    <h4 style="color: #856404;">ข้อมูลการโอนเงิน</h4>
+                    <p><strong>ธนาคาร:</strong> ไทยพาณิชย์</p>
+                    <p><strong>เลขที่บัญชี:</strong> 123-456-789-0</p>
+                    <p><strong>ชื่อบัญชี:</strong> สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+                    <p><strong>จำนวนเงิน:</strong> <span id="payment-amount"></span> บาท</p>
+                </div>
+
+                <button class="btn btn-secondary" onclick="prevStep()">กลับ</button>
+                <button class="btn" onclick="submitOrder()" id="submit-btn" disabled>ยืนยันคำสั่งซื้อ</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Success -->
+        <div class="step" id="step4">
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 4em; margin-bottom: 20px;">✅</div>
+                <h2>สั่งซื้อเสร็จสิ้น!</h2>
+                <p style="margin: 20px 0;">ขอบคุณสำหรับการสั่งซื้อ เราจะติดต่อกลับภายใน 1-2 วันทำการ</p>
+                <button class="btn" onclick="resetForm()">สั่งซื้อใหม่</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentStep = 1;
+        let selectedPackage = '';
+        let selectedDelivery = '';
+        let orderData = {};
+        let totalPrice = 0;
+
+        // Package prices
+        const prices = {
+            polo: 180,
+            jacket: 280,
+            keychain: 80,
+            tieClip: 120,
+            beltHead: 150,
+            'cpset-m1': 350,
+            'cpset-w1': 320,
+            dekcom: 580,
+            full: 900,
+            shipping: 50
+        };
+
+        // Size options
+        const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+        // Validation patterns
+        const patterns = {
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            phone: /^[0-9]{10}$/,
+            name: /^[a-zA-Zก-๙\s]{1,50}$/
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+        });
+
+        function initializeEventListeners() {
+            // Package selection
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectPackage(this.dataset.package);
+                });
+            });
+
+            // Delivery option selection
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectDelivery(this.dataset.delivery);
+                });
+            });
+
+            // CP Package checkboxes
+            document.getElementById('polo-check').addEventListener('change', function() {
+                toggleItemOptions('polo', this.checked);
+                calculateTotal();
+            });
+
+            document.getElementById('jacket-check').addEventListener('change', function() {
+                toggleItemOptions('jacket', this.checked);
+                calculateTotal();
+            });
+
+            document.getElementById('keychain-check').addEventListener('change', function() {
+                toggleItemOptions('keychain', this.checked);
+                calculateTotal();
+            });
+
+            document.getElementById('tie-clip-check').addEventListener('change', function() {
+                toggleItemOptions('tie-clip', this.checked);
+                calculateTotal();
+            });
+
+            document.getElementById('belt-head-check').addEventListener('change', function() {
+                toggleItemOptions('belt-head', this.checked);
+                calculateTotal();
+            });
+
+            // Form validation
+            ['email', 'firstname', 'lastname', 'phone', 'address'].forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.addEventListener('blur', () => validateField(field));
+                    element.addEventListener('input', () => clearError(field));
+                }
+            });
+        }
+
+        function selectPackage(packageType) {
+            // Remove previous selection
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add selection to clicked package
+            document.querySelector(`[data-package="${packageType}"]`).classList.add('selected');
+            selectedPackage = packageType;
+
+            // Show/hide relevant options
+            document.getElementById('cp-items').style.display = packageType === 'cp' ? 'block' : 'none';
+            document.getElementById('set-sizes').style.display = ['dekcom', 'full'].includes(packageType) ? 'block' : 'none';
+
+            // Setup set sizes
+            if (packageType === 'dekcom') {
+                document.getElementById('set-polo-sizes').style.display = 'block';
+                document.getElementById('set-jacket-sizes').style.display = 'block';
+                updateSetSizes();
+            } else if (packageType === 'full') {
+                document.getElementById('set-polo-sizes').style.display = 'block';
+                document.getElementById('set-jacket-sizes').style.display = 'block';
+                updateSetSizes();
+            } else if (['cpset-m1', 'cpset-w1'].includes(packageType)) {
+                document.getElementById('set-polo-sizes').style.display = 'none';
+                document.getElementById('set-jacket-sizes').style.display = 'none';
+            }
+
+            calculateTotal();
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function toggleItemOptions(item, show) {
+            const options = document.getElementById(`${item}-options`);
+            options.style.display = show ? 'block' : 'none';
+            
+            if (show && ['polo', 'jacket'].includes(item)) {
+                const qty = parseInt(document.getElementById(`${item}-qty`).value);
+                if (item === 'polo') updatePoloSizes();
+                if (item === 'jacket') updateJacketSizes();
+            }
+        }
+
+        function changeQuantity(item, delta) {
+            const qtyInput = document.getElementById(`${item}-qty`);
+            let currentQty = parseInt(qtyInput.value);
+            let newQty = Math.max(1, currentQty + delta);
+            qtyInput.value = newQty;
+            
+            if (item === 'polo') updatePoloSizes();
+            if (item === 'jacket') updateJacketSizes();
+            calculateTotal();
+        }
+
+        function changeSetQuantity(delta) {
+            const qtyInput = document.getElementById('set-qty');
+            let currentQty = parseInt(qtyInput.value);
+            let newQty = Math.max(1, currentQty + delta);
+            qtyInput.value = newQty;
+            updateSetSizes();
+            calculateTotal();
+        }
+
+        function updatePoloSizes() {
+            const qty = parseInt(document.getElementById('polo-qty').value);
+            const container = document.getElementById('polo-sizes');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < qty; i++) {
+                const sizeDiv = document.createElement('div');
+                sizeDiv.innerHTML = `
+                    <label>ไซส์เสื้อโปโลตัวที่ ${i + 1}:</label>
+                    <div class="size-selector">
+                        ${sizes.map(size => `
+                            <div class="size-option" onclick="selectSize('polo-${i}', '${size}', this)">${size}</div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(sizeDiv);
+            }
+        }
+
+        function updateJacketSizes() {
+            const qty = parseInt(document.getElementById('jacket-qty').value);
+            const container = document.getElementById('jacket-sizes');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < qty; i++) {
+                const sizeDiv = document.createElement('div');
+                sizeDiv.innerHTML = `
+                    <label>ไซส์แจ็คเก็ตตัวที่ ${i + 1}:</label>
+                    <div class="size-selector">
+                        ${sizes.map(size => `
+                            <div class="size-option" onclick="selectSize('jacket-${i}', '${size}', this)">${size}</div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(sizeDiv);
+            }
+        }
+
+        function updateSetSizes() {
+            const qty = parseInt(document.getElementById('set-qty').value);
+            
+            // Update polo sizes for sets
+            if (['dekcom', 'full'].includes(selectedPackage)) {
+                const poloContainer = document.getElementById('set-polo-size-options');
+                poloContainer.innerHTML = '';
+                
+                for (let i = 0; i < qty; i++) {
+                    const sizeDiv = document.createElement('div');
+                    sizeDiv.innerHTML = `
+                        <label>ไซส์เสื้อโปโลตัวที่ ${i + 1}:</label>
+                        <div class="size-selector">
+                            ${sizes.map(size => `
+                                <div class="size-option" onclick="selectSize('set-polo-${i}', '${size}', this)">${size}</div>
+                            `).join('')}
+                        </div>
+                    `;
+                    poloContainer.appendChild(sizeDiv);
+                }
+
+                // Update jacket sizes for sets
+                const jacketContainer = document.getElementById('set-jacket-size-options');
+                jacketContainer.innerHTML = '';
+                
+                for (let i = 0; i < qty; i++) {
+                    const sizeDiv = document.createElement('div');
+                    sizeDiv.innerHTML = `
+                        <label>ไซส์แจ็คเก็ตตัวที่ ${i + 1}:</label>
+                        <div class="size-selector">
+                            ${sizes.map(size => `
+                                <div class="size-option" onclick="selectSize('set-jacket-${i}', '${size}', this)">${size}</div>
+                            `).join('')}
+                        </div>
+                    `;
+                    jacketContainer.appendChild(sizeDiv);
+                }
+            }
+        }
+
+        function selectSize(itemId, size, element) {
+            // Remove previous selection in the same group
+            const parent = element.parentElement;
+            parent.querySelectorAll('.size-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection to clicked size
+            element.classList.add('selected');
+            
+            // Store the selection
+            if (!orderData.sizes) orderData.sizes = {};
+            orderData.sizes[itemId] = size;
+        }
+
+        function calculateTotal() {
+            totalPrice = 0;
+            let summary = [];
+
+            if (selectedPackage === 'cp') {
+                // Calculate CP package items
+                if (document.getElementById('polo-check').checked) {
+                    const qty = parseInt(document.getElementById('polo-qty').value);
+                    const itemTotal = prices.polo * qty;
+                    totalPrice += itemTotal;
+                    summary.push(`เสื้อโปโล ${qty} ตัว - ฿${itemTotal}`);
+                }
+
+                if (document.getElementById('jacket-check').checked) {
+                    const qty = parseInt(document.getElementById('jacket-qty').value);
+                    const itemTotal = prices.jacket * qty;
+                    totalPrice += itemTotal;
+                    summary.push(`แจ็คเก็ต ${qty} ตัว - ฿${itemTotal}`);
+                }
+
+                if (document.getElementById('keychain-check').checked) {
+                    const qty = parseInt(document.getElementById('keychain-qty').value);
+                    const itemTotal = prices.keychain * qty;
+                    totalPrice += itemTotal;
+                    summary.push(`ตุ้งติ้ง ${qty} ชิ้น - ฿${itemTotal}`);
+                }
+
+                if (document.getElementById('tie-clip-check').checked) {
+                    const qty = parseInt(document.getElementById('tie-clip-qty').value);
+                    const itemTotal = prices.tieClip * qty;
+                    totalPrice += itemTotal;
+                    summary.push(`ที่หนีบเนคไท ${qty} ชิ้น - ฿${itemTotal}`);
+                }
+
+                if (document.getElementById('belt-head-check').checked) {
+                    const qty = parseInt(document.getElementById('belt-head-qty').value);
+                    const itemTotal = prices.beltHead * qty;
+                    totalPrice += itemTotal;
+                    summary.push(`หัวเข็มขัด ${qty} ชิ้น - ฿${itemTotal}`);
+                }
+            } else {
+                // Calculate set packages
+                const qty = ['cpset-m1', 'cpset-w1'].includes(selectedPackage) ? 1 : parseInt(document.getElementById('set-qty').value || 1);
+                const packagePrice = prices[selectedPackage];
+                const itemTotal = packagePrice * qty;
+                totalPrice += itemTotal;
+                
+                const packageNames = {
+                    'cpset-m1': 'CPSET M1',
+                    'cpset-w1': 'CPSET W1',
+                    'dekcom': 'Dekcom SET',
+                    'full': 'Full Collection'
+                };
+                
+                summary.push(`${packageNames[selectedPackage]} ${qty} ชุด - ฿${itemTotal}`);
+            }
+
+            // Add shipping cost if selected
+            if (selectedDelivery === 'shipping') {
+                totalPrice += prices.shipping;
+                summary.push(`ค่าจัดส่ง - ฿${prices.shipping}`);
+            }
+
+            // Update summary display
+            document.getElementById('order-summary').innerHTML = summary.join('<br>');
+            document.getElementById('total-price').textContent = `รวมทั้งสิ้น: ฿${totalPrice}`;
+        }
+
+        function selectDelivery(delivery) {
+            // Remove previous selection
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // Add selection to clicked option
+            document.querySelector(`[data-delivery="${delivery}"]`).classList.add('selected');
+            selectedDelivery = delivery;
+
+            // Show/hide shipping address
+            document.getElementById('shipping-address').style.display = delivery === 'shipping' ? 'block' : 'none';
+            
+            // Update required field
+            const addressField = document.getElementById('address');
+            if (delivery === 'shipping') {
+                addressField.setAttribute('required', '');
+            } else {
+                addressField.removeAttribute('required');
+            }
+
+            calculateTotal();
+            validateStep2();
+        }
+
+        function validateField(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            let isValid = true;
+            let errorMessage = '';
+
+            if (!field.value.trim()) {
+                isValid = false;
+                errorMessage = 'กรุณากรอกข้อมูลนี้';
+            } else {
+                switch (fieldName) {
+                    case 'email':
+                        if (!patterns.email.test(field.value)) {
+                            isValid = false;
+                            errorMessage = 'รูปแบบอีเมลไม่ถูกต้อง';
+                        }
+                        break;
+                    case 'firstname':
+                    case 'lastname':
+                        if (!patterns.name.test(field.value)) {
+                            isValid = false;
+                            errorMessage = 'ชื่อสามารถมีเฉพาะตัวอักษรและช่องว่างเท่านั้น';
+                        }
+                        break;
+                    case 'phone':
+                        if (!patterns.phone.test(field.value.replace(/\D/g, ''))) {
+                            isValid = false;
+                            errorMessage = 'เบอร์โทรศัพท์ต้องมี 10 หลัก';
+                        }
+                        break;
+                    case 'address':
+                        if (selectedDelivery === 'shipping' && field.value.trim().length < 10) {
+                            isValid = false;
+                            errorMessage = 'กรุณากรอกที่อยู่ให้ครบถ้วน (อย่างน้อย 10 ตัวอักษร)';
+                        }
+                        break;
+                }
+            }
+
+            if (errorElement) {
+                errorElement.textContent = errorMessage;
+                field.style.borderColor = isValid ? '#e0e0e0' : '#e74c3c';
+            }
+
+            return isValid;
+        }
+
+        function clearError(fieldName) {
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            const field = document.getElementById(fieldName);
+            if (errorElement) {
+                errorElement.textContent = '';
+                field.style.borderColor = '#e0e0e0';
+            }
+        }
+
+        function validateStep2() {
+            const requiredFields = ['email', 'firstname', 'lastname', 'phone'];
+            if (selectedDelivery === 'shipping') {
+                requiredFields.push('address');
+            }
+
+            let isValid = selectedDelivery !== '';
+            
+            for (const field of requiredFields) {
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            }
+
+            document.getElementById('next-btn-2').disabled = !isValid;
+            return isValid;
+        }
+
+        function handleFileUpload(input) {
+            const uploadText = document.getElementById('upload-text');
+            const fileUpload = document.querySelector('.file-upload');
+            const errorElement = document.getElementById('slip-error');
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    errorElement.textContent = 'กรุณาเลือกไฟล์รูปภาพเท่านั้น';
+                    input.value = '';
+                    return;
+                }
+
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    errorElement.textContent = 'ขนาดไฟล์ต้องไม่เกิน 5MB';
+                    input.value = '';
+                    return;
+                }
+
+                fileUpload.classList.add('has-file');
+                uploadText.innerHTML = `
+                    <p>✅ ไฟล์ที่เลือก: ${file.name}</p>
+                    <p style="font-size: 14px; color: #28a745;">คลิกเพื่อเปลี่ยนไฟล์</p>
+                `;
+                errorElement.textContent = '';
+                document.getElementById('submit-btn').disabled = false;
+            }
+        }
+
+        function nextStep() {
+            if (currentStep === 1) {
+                if (!selectedPackage) {
+                    alert('กรุณาเลือกแพ็คเกจสินค้า');
+                    return;
+                }
+
+                // Validate sizes for clothing items
+                if (!validateSizes()) {
+                    alert('กรุณาเลือกไซส์สำหรับเสื้อทุกตัว');
+                    return;
+                }
+
+                collectOrderData();
+            } else if (currentStep === 2) {
+                if (!validateStep2()) {
+                    alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                    return;
+                }
+                showOrderSummary();
+            }
+
+            currentStep++;
+            showStep(currentStep);
+            updateProgressBar();
+        }
+
+        function prevStep() {
+            currentStep--;
+            showStep(currentStep);
+            updateProgressBar();
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach((stepElement, index) => {
+                stepElement.classList.toggle('active', index + 1 === step);
+            });
+        }
+
+        function updateProgressBar() {
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function validateSizes() {
+            if (selectedPackage === 'cp') {
+                // Check polo sizes
+                if (document.getElementById('polo-check').checked) {
+                    const qty = parseInt(document.getElementById('polo-qty').value);
+                    for (let i = 0; i < qty; i++) {
+                        if (!orderData.sizes || !orderData.sizes[`polo-${i}`]) {
+                            return false;
+                        }
+                    }
+                }
+
+                // Check jacket sizes
+                if (document.getElementById('jacket-check').checked) {
+                    const qty = parseInt(document.getElementById('jacket-qty').value);
+                    for (let i = 0; i < qty; i++) {
+                        if (!orderData.sizes || !orderData.sizes[`jacket-${i}`]) {
+                            return false;
+                        }
+                    }
+                }
+            } else if (['dekcom', 'full'].includes(selectedPackage)) {
+                const qty = parseInt(document.getElementById('set-qty').value);
+                for (let i = 0; i < qty; i++) {
+                    if (!orderData.sizes || !orderData.sizes[`set-polo-${i}`] || !orderData.sizes[`set-jacket-${i}`]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function collectOrderData() {
+            orderData = {
+                package: selectedPackage,
+                items: {},
+                sizes: orderData.sizes || {},
+                totalPrice: totalPrice
+            };
+
+            if (selectedPackage === 'cp') {
+                if (document.getElementById('polo-check').checked) {
+                    orderData.items.polo = parseInt(document.getElementById('polo-qty').value);
+                }
+                if (document.getElementById('jacket-check').checked) {
+                    orderData.items.jacket = parseInt(document.getElementById('jacket-qty').value);
+                }
+                if (document.getElementById('keychain-check').checked) {
+                    orderData.items.keychain = parseInt(document.getElementById('keychain-qty').value);
+                }
+                if (document.getElementById('tie-clip-check').checked) {
+                    orderData.items.tieClip = parseInt(document.getElementById('tie-clip-qty').value);
+                }
+                if (document.getElementById('belt-head-check').checked) {
+                    orderData.items.beltHead = parseInt(document.getElementById('belt-head-qty').value);
+                }
+            } else {
+                const qty = ['cpset-m1', 'cpset-w1'].includes(selectedPackage) ? 1 : parseInt(document.getElementById('set-qty').value || 1);
+                orderData.items[selectedPackage] = qty;
+
+                // Set default items based on package
+                if (selectedPackage === 'cpset-m1') {
+                    orderData.items.tieClip = qty;
+                    orderData.items.beltHead = qty;
+                } else if (selectedPackage === 'cpset-w1') {
+                    orderData.items.keychain = qty;
+                    orderData.items.beltHead = qty;
+                } else if (selectedPackage === 'dekcom') {
+                    orderData.items.polo = qty;
+                    orderData.items.jacket = qty;
+                } else if (selectedPackage === 'full') {
+                    orderData.items.polo = qty;
+                    orderData.items.jacket = qty;
+                    orderData.items.keychain = qty;
+                    orderData.items.tieClip = qty;
+                    orderData.items.beltHead = qty;
+                }
+            }
+        }
+
+        function showOrderSummary() {
+            // Collect customer info
+            orderData.customer = {
+                email: document.getElementById('email').value,
+                firstname: document.getElementById('firstname').value,
+                lastname: document.getElementById('lastname').value,
+                phone: document.getElementById('phone').value,
+                delivery: selectedDelivery,
+                address: selectedDelivery === 'shipping' ? document.getElementById('address').value : ''
+            };
+
+            // Update final total with shipping
+            if (selectedDelivery === 'shipping') {
+                orderData.totalPrice = totalPrice;
+            }
+
+            // Display final summary
+            let summaryHtml = '<div style="margin-bottom: 15px;"><strong>รายการสินค้า:</strong><br>';
+            
+            const itemNames = {
+                polo: 'เสื้อโปโล',
+                jacket: 'แจ็คเก็ต',
+                keychain: 'ตุ้งติ้ง',
+                tieClip: 'ที่หนีบเนคไท',
+                beltHead: 'หัวเข็มขัด'
+            };
+
+            const packageNames = {
+                'cpset-m1': 'CPSET M1',
+                'cpset-w1': 'CPSET W1',
+                'dekcom': 'Dekcom SET',
+                'full': 'Full Collection'
+            };
+
+            if (selectedPackage === 'cp') {
+                Object.keys(orderData.items).forEach(item => {
+                    if (orderData.items[item] > 0) {
+                        summaryHtml += `${itemNames[item]}: ${orderData.items[item]} ชิ้น<br>`;
+                        
+                        // Show sizes for clothing items
+                        if (['polo', 'jacket'].includes(item)) {
+                            for (let i = 0; i < orderData.items[item]; i++) {
+                                const size = orderData.sizes[`${item}-${i}`];
+                                summaryHtml += `&nbsp;&nbsp;- ตัวที่ ${i + 1}: ไซส์ ${size}<br>`;
+                            }
+                        }
+                    }
+                });
+            } else {
+                summaryHtml += `${packageNames[selectedPackage]}: ${orderData.items[selectedPackage]} ชุด<br>`;
+                
+                // Show sizes for set packages
+                if (['dekcom', 'full'].includes(selectedPackage)) {
+                    const qty = orderData.items[selectedPackage];
+                    for (let i = 0; i < qty; i++) {
+                        const poloSize = orderData.sizes[`set-polo-${i}`];
+                        const jacketSize = orderData.sizes[`set-jacket-${i}`];
+                        summaryHtml += `&nbsp;&nbsp;- ชุดที่ ${i + 1}: โปโลไซส์ ${poloSize}, แจ็คเก็ตไซส์ ${jacketSize}<br>`;
+                    }
+                }
+            }
+
+            summaryHtml += '</div>';
+
+            if (selectedDelivery === 'shipping') {
+                summaryHtml += `<div style="margin-bottom: 15px;"><strong>ค่าจัดส่ง:</strong> ฿${prices.shipping}</div>`;
+            }
+
+            summaryHtml += `<div style="font-size: 1.2em; font-weight: bold; color: #e74c3c;"><strong>รวมทั้งสิ้น: ฿${orderData.totalPrice}</strong></div>`;
+
+            document.getElementById('final-summary').innerHTML = summaryHtml;
+
+            // Display customer info
+            const customerHtml = `
+                <strong>ชื่อ:</strong> ${orderData.customer.firstname} ${orderData.customer.lastname}<br>
+                <strong>อีเมล:</strong> ${orderData.customer.email}<br>
+                <strong>เบอร์โทร:</strong> ${orderData.customer.phone}<br>
+                <strong>การจัดส่ง:</strong> ${orderData.customer.delivery === 'pickup' ? 'รับที่วิทยาลัย' : 'จัดส่งทางไปรษณีย์'}<br>
+                ${orderData.customer.address ? `<strong>ที่อยู่:</strong> ${orderData.customer.address}<br>` : ''}
+            `;
+
+            document.getElementById('customer-info').innerHTML = customerHtml;
+            document.getElementById('payment-amount').textContent = orderData.totalPrice;
+        }
+
+        async function submitOrder() {
+            const slipFile = document.getElementById('slip-file').files[0];
+            if (!slipFile) {
+                document.getElementById('slip-error').textContent = 'กรุณาอัปโหลดสลิปการโอนเงิน';
+                return;
+            }
+
+            try {
+                // Convert image to base64 for Google Forms submission
+                const base64Image = await fileToBase64(slipFile);
+                
+                // Prepare data for Google Forms
+                const submissionData = {
+                    timestamp: new Date().toISOString(),
+                    orderData: JSON.stringify(orderData),
+                    slipImage: base64Image,
+                    summary: generateOrderSummary()
+                };
+
+                // Show loading state
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('submit-btn').textContent = 'กำลังส่งข้อมูล...';
+
+                // Simulate Google Forms submission (replace with actual Google Forms API call)
+                await simulateFormSubmission(submissionData);
+
+                // Success
+                currentStep = 4;
+                showStep(currentStep);
+                updateProgressBar();
+
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+                document.getElementById('submit-btn').disabled = false;
+                document.getElementById('submit-btn').textContent = 'ยืนยันคำสั่งซื้อ';
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function generateOrderSummary() {
+            const itemCount = {
+                polo: 0,
+                jacket: 0,
+                keychain: 0,
+                tieClip: 0,
+                beltHead: 0
+            };
+
+            // Count items based on package
+            if (selectedPackage === 'cp') {
+                Object.keys(orderData.items).forEach(item => {
+                    if (itemCount.hasOwnProperty(item)) {
+                        itemCount[item] = orderData.items[item] || 0;
+                    }
+                });
+            } else {
+                const qty = orderData.items[selectedPackage] || 1;
+                
+                if (selectedPackage === 'cpset-m1') {
+                    itemCount.tieClip = qty;
+                    itemCount.beltHead = qty;
+                } else if (selectedPackage === 'cpset-w1') {
+                    itemCount.keychain = qty;
+                    itemCount.beltHead = qty;
+                } else if (selectedPackage === 'dekcom') {
+                    itemCount.polo = qty;
+                    itemCount.jacket = qty;
+                } else if (selectedPackage === 'full') {
+                    itemCount.polo = qty;
+                    itemCount.jacket = qty;
+                    itemCount.keychain = qty;
+                    itemCount.tieClip = qty;
+                    itemCount.beltHead = qty;
+                }
+            }
+
+            return {
+                customer: orderData.customer,
+                items: itemCount,
+                sizes: orderData.sizes,
+                totalPrice: orderData.totalPrice,
+                package: selectedPackage,
+                delivery: selectedDelivery
+            };
+        }
+
+        // Simulate Google Forms submission (replace with actual implementation)
+        async function simulateFormSubmission(data) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log('Order submitted:', data);
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        function resetForm() {
+            // Reset all variables
+            currentStep = 1;
+            selectedPackage = '';
+            selectedDelivery = '';
+            orderData = {};
+            totalPrice = 0;
+
+            // Reset UI
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea').forEach(input => {
+                input.value = '';
+                input.style.borderColor = '#e0e0e0';
+            });
+
+            document.querySelectorAll('.error').forEach(error => {
+                error.textContent = '';
+            });
+
+            // Reset file upload
+            document.getElementById('slip-file').value = '';
+            document.querySelector('.file-upload').classList.remove('has-file');
+            document.getElementById('upload-text').innerHTML = `
+                <p>📸 คลิกเพื่อเลือกไฟล์สลิป</p>
+                <p style="font-size: 14px; color: #666;">รองรับไฟล์ JPG, PNG</p>
+            `;
+
+            // Reset buttons
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('next-btn-2').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').textContent = 'ยืนยันคำสั่งซื้อ';
+
+            // Reset displays
+            document.getElementById('cp-items').style.display = 'none';
+            document.getElementById('set-sizes').style.display = 'none';
+            document.getElementById('shipping-address').style.display = 'none';
+            document.getElementById('order-summary').innerHTML = '';
+            document.getElementById('total-price').textContent = '';
+
+            // Show first step
+            showStep(1);
+            updateProgressBar();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Add event listeners for real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quantity inputs validation
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.value < 1) this.value = 1;
+                    calculateTotal();
+                });
+            });
+
+            // Phone number formatting
+            document.getElementById('phone').addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
+
+            // Real-time validation for step 2
+            ['email', 'firstname', 'lastname', 'phone', 'address'].forEach(field => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.addEventListener('input', () => {
+                        setTimeout(validateStep2, 100);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

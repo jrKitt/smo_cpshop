@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ติดตามสถานะการสั่งซื้อสินค้าจากสโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
+        crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <title>ติดตามสินค้า - CPSHOP</title>
+    <link rel="icon" type="image/x-icon" href="./image/SMOLOGO.webp">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #30319D;">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+                <img src="./image/SMOLOGO.webp" alt="SMOCP Logo" width="30" height="30" class="me-2">
+                SMOCP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <!-- เมนูลิงก์ -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">หน้าหลัก</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">ปฏิทินกิจกรรม</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">บริการสำหรับนักศึกษา</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop">ร้านค้าสโมสร</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/tracking">ติดตามสินค้า</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="https://www.facebook.com/profile.php?id=100083108863117&mibextid=wwXIfr&rdid=SjHPRnXMQKJ5FEDh&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1BUay9x1MG%2F%3Fmibextid%3DwwXIfr"
+                            target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ช่องค้นหาและตะกร้าสินค้า -->
+                <form class="d-flex me-3" role="search"
+                    onsubmit="event.preventDefault(); alert('ค้นหา: ' + this.querySelector('input').value);">
+                    <input class="form-control form-control-sm me-2" type="search" placeholder="ค้นหา"
+                        aria-label="Search">
+                    <button class="btn btn-outline-light btn-sm" type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="card mb-4 shadow-sm border-0">
+        <img src="./image/bg.webp" class="img-fluid w-100" alt="CP SHOP Banner"
+            style="max-height: 250px; object-fit: cover;">
+        <div class="card-img-overlay d-flex align-items-center justify-content-center">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
+                    <i class="fas fa-search me-3"></i>ติดตามสินค้า
+                </h1>
+                <p class="lead" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
+                    ตรวจสอบสถานะการสั่งซื้อและการจัดส่งของคุณ
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <!-- Order Tracking Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-5">
+                            <div class="display-1 text-primary mb-3">
+                                <i class="fas fa-package"></i>
+                            </div>
+                            <h2 class="fw-bold text-primary mb-3">ติดตามสถานะการสั่งซื้อ</h2>
+                            <p class="text-muted">
+                                ใส่หมายเลขการสั่งซื้อเพื่อดูสถานะปัจจุบันของคำสั่งซื้อและการจัดส่งของคุณ</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <div class="mb-4">
+                                    <label for="tracking-number" class="form-label fw-bold">หมายเลขการสั่งซื้อ</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-primary text-white border-0">
+                                            <i class="fas fa-hashtag"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-0 shadow-sm" id="tracking-number"
+                                            placeholder="ใส่หมายเลขการสั่งซื้อของคุณ (เช่น SMO202411...)">
+                                        <button class="btn btn-primary px-4" type="button" onclick="trackOrder()">
+                                            <i class="fas fa-search me-2"></i>ค้นหา
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <div class="alert alert-info border-0 rounded-3" role="alert">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle fs-4 text-info"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="alert-heading fw-bold">วิธีการติดตาม:</h6>
+                                            <ul class="mb-0 ps-3">
+                                                <li>ใส่หมายเลขการสั่งซื้อที่ได้รับจากอีเมลยืนยัน</li>
+                                                <li>คลิกปุ่ม "ค้นหา" เพื่อดูสถานะการสั่งซื้อ</li>
+                                                <li>หากมีปัญหาในการติดตาม กรุณาติดต่อทีมงานผ่าน Facebook</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tracking Results -->
+                        <div id="tracking-results" class="mt-5" style="display: none;">
+                            <hr class="my-4">
+                            <div class="text-center mb-4">
+                                <h4 class="text-success fw-bold">
+                                    <i class="fas fa-check-circle me-2"></i>ผลการค้นหา
+                                </h4>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-route me-2"></i>สถานะการจัดส่ง
+                                            </h5>
+                                        </div>
+                                        <div class="card-body p-4">
+                                            <div class="timeline">
+                                                <div class="timeline-item" id="status-pending">
+                                                    <div class="timeline-dot bg-warning"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="mb-1 fw-bold">รอจัดสั่ง</h6>
+                                                        <small
+                                                            class="text-muted">รอทีมงานตรวจสอบและยืนยันคำสั่งซื้อ</small>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline-item" id="status-confirmed">
+                                                    <div class="timeline-dot bg-info"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="mb-1 fw-bold">ยืนยันคำสั่งซื้อแล้ว</h6>
+                                                        <small
+                                                            class="text-muted">ทีมงานได้รับคำสั่งซื้อและยืนยันแล้ว</small>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline-item" id="status-preparing">
+                                                    <div class="timeline-dot bg-primary"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="mb-1 fw-bold">กำลังเตรียมสินค้า</h6>
+                                                        <small
+                                                            class="text-muted">ทีมงานกำลังเตรียมสินค้าตามคำสั่งซื้อ</small>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline-item" id="status-shipping">
+                                                    <div class="timeline-dot bg-warning"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="mb-1 fw-bold">จัดส่งแล้ว</h6>
+                                                        <small
+                                                            class="text-muted">สินค้าถูกส่งไปยังที่อยู่ที่ระบุแล้ว</small>
+                                                        <div class="mt-2">
+                                                            <span class="badge bg-primary fs-6">
+                                                                <i class="fas fa-truck me-1"></i>
+                                                                หมายเลขพัสดุ: <span id="tracking-code">-</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline-item" id="status-delivered">
+                                                    <div class="timeline-dot bg-success"></div>
+                                                    <div class="timeline-content">
+                                                        <h6 class="mb-1 fw-bold">จัดส่งสำเร็จ</h6>
+                                                        <small
+                                                            class="text-muted">สินค้าถูกจัดส่งถึงผู้รับเรียบร้อยแล้ว</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4">
+                                    <div class="card border-primary shadow-sm">
+                                        <div class="card-header bg-primary text-white">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-receipt me-2"></i>รายละเอียดคำสั่งซื้อ
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <strong class="text-muted small">หมายเลขคำสั่งซื้อ:</strong>
+                                                <div class="fw-bold" id="order-number-display">-</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong class="text-muted small">วันที่สั่งซื้อ:</strong>
+                                                <div class="fw-bold" id="order-date-display">-</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong class="text-muted small">สถานะปัจจุบัน:</strong>
+                                                <div>
+                                                    <span id="order-status-display"
+                                                        class="badge bg-secondary fs-6">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="mb-0">
+                                                <strong class="text-muted small">ยอดรวม:</strong>
+                                                <div class="fw-bold text-primary fs-5">
+                                                    <span id="order-total-display">-</span> บาท
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contact Support Card -->
+                                    <div class="card border-0 bg-light mt-3">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-question-circle text-primary fs-2 mb-2"></i>
+                                            <h6 class="fw-bold mb-2">ต้องการความช่วยเหลือ?</h6>
+                                            <p class="small text-muted mb-3">
+                                                หากมีคำถามเกี่ยวกับการสั่งซื้อหรือการจัดส่ง
+                                            </p>
+                                            <a href="https://www.facebook.com/profile.php?id=100083108863117"
+                                                target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fab fa-facebook me-1"></i>ติดต่อทีมงาน
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card border-0 h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">สั่งซื้อสินค้า</h5>
+                        <p class="text-muted mb-3">เลือกซื้อสินค้าจากสโมสรนักศึกษา</p>
+                        <a href="/shop" class="btn btn-outline-primary">
+                            <i class="fas fa-store me-2"></i>ไปที่ร้านค้า
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">หน้าหลัก</h5>
+                        <p class="text-muted mb-3">กลับไปยังหน้าแรกของเว็บไซต์</p>
+                        <a href="/" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 h-100 text-center">
+                    <div class="card-body p-4">
+                        <div class="text-primary fs-1 mb-3">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">ติดต่อเรา</h5>
+                        <p class="text-muted mb-3">ติดตามข่าวสารและติดต่อทีมงาน</p>
+                        <a href="https://www.facebook.com/profile.php?id=100083108863117" target="_blank"
+                            class="btn btn-outline-primary">
+                            <i class="fab fa-facebook me-2"></i>Facebook
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-white pt-4 pb-2 mt-5" style="background-color: #30319D;">
+        <div class="container text-center">
+            <h5 class="fw-bold">STUDENT UNION | College Of Computing</h5>
+            <p class="small mb-1">สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+            <p class="small mb-2">วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น</p>
+            <p class="small text-secondary mb-0">&copy; 2025 CP SHOP. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Include tracking script -->
+    <script src="./script-tracking.js"></script>
+
+    <style>
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 0 0 30px 40px;
+            border-left: 2px solid #e3e3e3;
+        }
+
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f0f0f0;
+        }
+
+        .timeline-item.active .timeline-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+            }
+        }
+
+        .timeline-item.completed .timeline-dot {
+            background-color: #28a745 !important;
+        }
+
+        .timeline-item.completed .timeline-content {
+            opacity: 0.8;
+            background-color: #f8fff8;
+        }
+
+        .card-img-overlay {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        #tracking-number {
+            border-radius: 0;
+        }
+
+        .input-group-lg .btn {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .input-group-lg .input-group-text:first-child {
+            border-radius: 0.5rem 0 0 0.5rem;
+        }
+
+        /* Enter key support */
+        #tracking-number:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-color: #86b7fe;
+        }
+    </style>
+
+    <script>
+        // เพิ่ม Enter key support สำหรับการติดตามคำสั่งซื้อ
+        document.addEventListener('DOMContentLoaded', function () {
+            const trackingInput = document.getElementById('tracking-number');
+            if (trackingInput) {
+                trackingInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        trackOrder();
+                    }
+                });
+
+                // Auto focus on input field
+                trackingInput.focus();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบการอัปโหลดสลิป</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">ทดสอบการอัปโหลดสลิป</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm">
+                            <div class="mb-3">
+                                <label for="orderRef" class="form-label">หมายเลขคำสั่งซื้อ</label>
+                                <input type="text" class="form-control" id="orderRef" value="TEST001" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="slipFile" class="form-label">เลือกไฟล์สลิป</label>
+                                <input type="file" class="form-control" id="slipFile" accept="image/*" required>
+                            </div>
+
+                            <div class="mb-3" id="preview" style="display: none;">
+                                <label class="form-label">ตัวอย่างรูปภาพ</label>
+                                <div>
+                                    <img id="previewImg" src="" alt="Preview" class="img-thumbnail"
+                                        style="max-width: 200px;">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+                                <span class="spinner-border spinner-border-sm d-none me-2" id="uploadSpinner"></span>
+                                อัปโหลดสลิป
+                            </button>
+                        </form>
+
+                        <div class="mt-4" id="result" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('slipFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('preview').style.display = 'none';
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const orderRef = document.getElementById('orderRef').value;
+            const slipFile = document.getElementById('slipFile').files[0];
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadSpinner = document.getElementById('uploadSpinner');
+            const resultDiv = document.getElementById('result');
+
+            if (!slipFile) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกไฟล์สลิป', 'error');
+                return;
+            }
+
+            // Show loading
+            uploadBtn.disabled = true;
+            uploadSpinner.classList.remove('d-none');
+            uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังอัปโหลด...';
+
+            try {
+                // Convert file to base64
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    const base64Data = e.target.result;
+
+                    const uploadData = {
+                        file: base64Data,
+                        fileName: `SLIP_${orderRef}_${Date.now()}_${slipFile.name}`,
+                        type: slipFile.type,
+                        orderRef: orderRef
+                    };
+
+                    try {
+                        const response = await fetch('/upload-slip', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(uploadData)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-success">
+                                    <h6>อัปโหลดสำเร็จ!</h6>
+                                    <p><strong>ไฟล์:</strong> ${result.fileName}</p>
+                                    <p><strong>ลิงค์:</strong> <a href="${result.fileUrl}" target="_blank">${result.fileUrl}</a></p>
+                                    <p><strong>สถานะ:</strong> ${result.status}</p>
+                                </div>
+                            `;
+
+                            Swal.fire('สำเร็จ!', 'อัปโหลดสลิปเรียบร้อยแล้ว', 'success');
+                        } else {
+                            throw new Error(result.message || 'เกิดข้อผิดพลาดในการอัปโหลด');
+                        }
+
+                        resultDiv.style.display = 'block';
+
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <h6>เกิดข้อผิดพลาด</h6>
+                                <p>${error.message}</p>
+                            </div>
+                        `;
+                        resultDiv.style.display = 'block';
+
+                        Swal.fire('ข้อผิดพลาด', error.message, 'error');
+                    }
+                };
+                reader.readAsDataURL(slipFile);
+
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถอัปโหลดไฟล์ได้', 'error');
+            } finally {
+                // Hide loading
+                uploadBtn.disabled = false;
+                uploadSpinner.classList.add('d-none');
+                uploadBtn.innerHTML = 'อัปโหลดสลิป';
+            }
+        });
+    </script>
+</body>
+
+</html>

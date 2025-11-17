@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CP Store - สโมสรวิทยาลัยการคอมพิวเตอร์</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6ba3d6 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #1e40af;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .page {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .product-card.selected {
+            border-color: #1e40af;
+            background: #f0f9ff;
+        }
+
+        .product-title {
+            color: #1e40af;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .product-items {
+            color: #6b7280;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .original-price {
+            color: #9ca3af;
+            text-decoration: line-through;
+            font-size: 0.9rem;
+        }
+
+        .current-price {
+            color: #1e40af;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .savings {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .product-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .size-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .size-option {
+            background: #f3f4f6;
+            border: 2px solid #d1d5db;
+            padding: 8px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-option:hover {
+            background: #e5e7eb;
+        }
+
+        .size-option.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .delivery-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .delivery-option {
+            background: white;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .delivery-option:hover {
+            border-color: #3b82f6;
+        }
+
+        .delivery-option.selected {
+            border-color: #1e40af;
+            background: #f0f9ff;
+        }
+
+        .summary-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+
+        .summary-total {
+            border-top: 2px solid #d1d5db;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #10b981;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #1e40af;
+            background: #f0f9ff;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .product-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ CP Store</h1>
+            <p>สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+        </div>
+
+        <!-- หน้าแสดงสินค้า -->
+        <div id="products-page" class="page active">
+            <h2 style="color: #1e40af; margin-bottom: 30px; text-align: center; font-size: 1.8rem;">🛒 เลือกสินค้าที่ต้องการ</h2>
+            
+            <div class="product-grid">
+                <!-- ซื้อแยกชิ้น -->
+                <div class="product-card" data-package="individual">
+                    <div class="product-title">🛍️ ซื้อแยกชิ้น</div>
+                    <div class="product-items">
+                        เลือกสินค้าแต่ละชิ้นตามต้องการ<br>
+                        • เสื้อโปโล: 359฿<br>
+                        • เสื้อแจ็คเก็ต: 790฿<br>
+                        • หัวเข็มขัด: 129฿<br>
+                        • ตุ้งติ้ง: 119฿<br>
+                        • ที่หนีบเนคไท: 119฿
+                    </div>
+                    <div class="price">
+                        <span class="current-price">เลือกสินค้า</span>
+                    </div>
+                    <div class="product-controls">
+                        <button class="btn" onclick="selectPackage('individual')">เลือกแพ็คเก็จนี้</button>
+                    </div>
+                </div>
+
+                <!-- CPSET M1 -->
+                <div class="product-card" data-package="cpset-m1">
+                    <div class="product-title">👔 CPSET M1</div>
+                    <div class="product-items">
+                        • ที่หนีบเนคไท<br>
+                        • หัวเข็มขัด
+                    </div>
+                    <div class="price">
+                        <span class="original-price">248฿</span>
+                        <span class="current-price">199฿</span>
+                        <span class="savings">ประหยัด 49฿</span>
+                    </div>
+                    <div class="product-controls">
+                        <div class="quantity-control">
+                            <button class="btn btn-secondary" onclick="changeQuantity('cpset-m1', -1)">-</button>
+                            <span id="qty-cpset-m1">0</span>
+                            <button class="btn btn-secondary" onclick="changeQuantity('cpset-m1', 1)">+</button>
+                        </div>
+                        <button class="btn" onclick="selectPackage('cpset-m1')">เลือกแพ็คเก็จนี้</button>
+                    </div>
+                </div>
+
+                <!-- CPSET W1 -->
+                <div class="product-card" data-package="cpset-w1">
+                    <div class="product-title">👩‍💼 CPSET W1</div>
+                    <div class="product-items">
+                        • ตุ้งติ้ง<br>
+                        • หัวเข็มขัด
+                    </div>
+                    <div class="price">
+                        <span class="original-price">248฿</span>
+                        <span class="current-price">199฿</span>
+                        <span class="savings">ประหยัด 49฿</span>
+                    </div>
+                    <div class="product-controls">
+                        <div class="quantity-control">
+                            <button class="btn btn-secondary" onclick="changeQuantity('cpset-w1', -1)">-</button>
+                            <span id="qty-cpset-w1">0</span>
+                            <button class="btn btn-secondary" onclick="changeQuantity('cpset-w1', 1)">+</button>
+                        </div>
+                        <button class="btn" onclick="selectPackage('cpset-w1')">เลือกแพ็คเก็จนี้</button>
+                    </div>
+                </div>
+
+                <!-- Dekcom SET -->
+                <div class="product-card" data-package="dekcom-set">
+                    <div class="product-title">👕 Dekcom SET</div>
+                    <div class="product-items">
+                        • เสื้อโปโล<br>
+                        • เสื้อแจ็คเก็ต
+                    </div>
+                    <div class="price">
+                        <span class="original-price">1,149฿</span>
+                        <span class="current-price">999฿</span>
+                        <span class="savings">ประหยัด 150฿</span>
+                    </div>
+                    <div class="product-controls">
+                        <div class="quantity-control">
+                            <button class="btn btn-secondary" onclick="changeQuantity('dekcom-set', -1)">-</button>
+                            <span id="qty-dekcom-set">0</span>
+                            <button class="btn btn-secondary" onclick="changeQuantity('dekcom-set', 1)">+</button>
+                        </div>
+                        <button class="btn" onclick="selectPackage('dekcom-set')">เลือกแพ็คเก็จนี้</button>
+                    </div>
+                </div>
+
+                <!-- Full Collection -->
+                <div class="product-card" data-package="full-collection">
+                    <div class="product-title">🎁 Full Collection</div>
+                    <div class="product-items">
+                        • เสื้อโปโล<br>
+                        • เสื้อแจ็คเก็ต<br>
+                        • หัวเข็มขัด<br>
+                        • ตุ้งติ้ง<br>
+                        • ที่หนีบเนคไท
+                    </div>
+                    <div class="price">
+                        <span class="original-price">1,516฿</span>
+                        <span class="current-price">1,289฿</span>
+                        <span class="savings">ประหยัด 227฿</span>
+                    </div>
+                    <div class="product-controls">
+                        <div class="quantity-control">
+                            <button class="btn btn-secondary" onclick="changeQuantity('full-collection', -1)">-</button>
+                            <span id="qty-full-collection">0</span>
+                            <button class="btn btn-secondary" onclick="changeQuantity('full-collection', 1)">+</button>
+                        </div>
+                        <button class="btn" onclick="selectPackage('full-collection')">เลือกแพ็คเก็จนี้</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Items Selection -->
+            <div id="individual-items" style="display: none;">
+                <h3 style="color: #1e40af; margin-bottom: 20px;">เลือกสินค้าแต่ละชิ้น</h3>
+                <div class="product-grid">
+                    <div class="product-card">
+                        <div class="product-title">👕 เสื้อโปโล</div>
+                        <div class="price">
+                            <span class="current-price">359฿</span>
+                        </div>
+                        <div class="product-controls">
+                            <div class="quantity-control">
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('polo', -1)">-</button>
+                                <span id="qty-polo">0</span>
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('polo', 1)">+</button>
+                            </div>
+                        </div>
+                        <div id="polo-sizes" style="display: none;">
+                            <div class="form-label">เลือกไซส์:</div>
+                            <div id="polo-size-selector"></div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-title">🧥 เสื้อแจ็คเก็ต</div>
+                        <div class="price">
+                            <span class="current-price">790฿</span>
+                        </div>
+                        <div class="product-controls">
+                            <div class="quantity-control">
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('jacket', -1)">-</button>
+                                <span id="qty-jacket">0</span>
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('jacket', 1)">+</button>
+                            </div>
+                        </div>
+                        <div id="jacket-sizes" style="display: none;">
+                            <div class="form-label">เลือกไซส์:</div>
+                            <div id="jacket-size-selector"></div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-title">🔗 หัวเข็มขัด</div>
+                        <div class="price">
+                            <span class="current-price">129฿</span>
+                        </div>
+                        <div class="product-controls">
+                            <div class="quantity-control">
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('belt', -1)">-</button>
+                                <span id="qty-belt">0</span>
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('belt', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-title">🎀 ตุ้งติ้ง</div>
+                        <div class="price">
+                            <span class="current-price">119฿</span>
+                        </div>
+                        <div class="product-controls">
+                            <div class="quantity-control">
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('ribbon', -1)">-</button>
+                                <span id="qty-ribbon">0</span>
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('ribbon', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-title">📎 ที่หนีบเนคไท</div>
+                        <div class="price">
+                            <span class="current-price">119฿</span>
+                        </div>
+                        <div class="product-controls">
+                            <div class="quantity-control">
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('tieclip', -1)">-</button>
+                                <span id="qty-tieclip">0</span>
+                                <button class="btn btn-secondary" onclick="changeIndividualQuantity('tieclip', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Size Selection for Package Items -->
+            <div id="package-sizes" style="display: none;">
+                <h3 style="color: #1e40af; margin-bottom: 20px;">เลือกไซส์เสื้อ</h3>
+                <div id="package-size-content"></div>
+            </div>
+
+            <div class="summary-box" id="order-summary" style="display: none;">
+                <h3 style="color: #1e40af; margin-bottom: 15px;">📋 สรุปรายการสั่งซื้อ</h3>
+                <div id="summary-content"></div>
+                <div class="summary-total">
+                    <div class="summary-item">
+                        <span>รวมทั้งหมด:</span>
+                        <span id="total-price">0฿</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="proceedToDelivery()" id="proceed-btn" style="display: none;">
+                    ดำเนินการต่อ 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- หน้าเลือกการจัดส่ง -->
+        <div id="delivery-page" class="page">
+            <h2 style="color: #1e40af; margin-bottom: 30px; text-align: center; font-size: 1.8rem;">🚚 เลือกวิธีการรับสินค้า</h2>
+            
+            <div class="delivery-options">
+                <div class="delivery-option" data-delivery="pickup" onclick="selectDelivery('pickup')">
+                    <h3>🏫 รับที่วิทยาลัย</h3>
+                    <p>ฟรี - ไม่มีค่าจัดส่ง</p>
+                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">
+                        รับสินค้าที่สโมสรนักศึกษา<br>
+                        วิทยาลัยการคอมพิวเตอร์
+                    </p>
+                </div>
+                
+                <div class="delivery-option" data-delivery="shipping" onclick="selectDelivery('shipping')">
+                    <h3>📦 จัดส่งไปรษณีย์</h3>
+                    <p>+ 50฿ ค่าจัดส่ง</p>
+                    <p style="font-size: 0.9rem; color: #6b7280; margin-top: 10px;">
+                        จัดส่งผ่านไปรษณีย์ไทย<br>
+                        ระยะเวลา 2-3 วันทำการ
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="goToPage('products-page')" style="margin-right: 15px;">
+                    ← กลับ
+                </button>
+                <button class="btn btn-success" onclick="proceedToForm()" id="delivery-proceed-btn" style="display: none;">
+                    ดำเนินการต่อ 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- หน้ากรอกข้อมูล -->
+        <div id="form-page" class="page">
+            <h2 style="color: #1e40af; margin-bottom: 30px; text-align: center; font-size: 1.8rem;">📝 กรอกข้อมูลสำหรับการสั่งซื้อ</h2>
+            
+            <form id="order-form">
+                <div class="form-group">
+                    <label class="form-label">📧 อีเมล *</label>
+                    <input type="email" class="form-input" id="email" required>
+                    <div class="error" id="email-error"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">👤 ชื่อ *</label>
+                        <input type="text" class="form-input" id="firstName" required>
+                        <div class="error" id="firstName-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">👤 นามสกุล *</label>
+                        <input type="text" class="form-input" id="lastName" required>
+                        <div class="error" id="lastName-error"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">📱 เบอร์โทรศัพท์ *</label>
+                    <input type="tel" class="form-input" id="phone" required>
+                    <div class="error" id="phone-error"></div>
+                </div>
+
+                <div id="shipping-address" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">🏠 ที่อยู่สำหรับการจัดส่ง *</label>
+                        <textarea class="form-textarea" id="address" rows="4" placeholder="กรุณากรอกที่อยู่ให้ครบถ้วน เช่น เลขที่ ซอย ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"></textarea>
+                        <div class="error" id="address-error"></div>
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <h3 style="color: #1e40af; margin-bottom: 15px;">📋 สรุปรายการสั่งซื้อ</h3>
+                    <div id="final-summary-content"></div>
+                    <div class="summary-total">
+                        <div class="summary-item">
+                            <span>ค่าสินค้า:</span>
+                            <span id="subtotal-price">0฿</span>
+                        </div>
+                        <div class="summary-item" id="shipping-fee-row" style="display: none;">
+                            <span>ค่าจัดส่ง:</span>
+                            <span>50฿</span>
+                        </div>
+                        <div class="summary-item" style="border-top: 2px solid #d1d5db; padding-top: 15px; margin-top: 15px; font-weight: 600; font-size: 1.1rem;">
+                            <span>รวมทั้งหมด:</span>
+                            <span id="final-total-price">0฿</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="goToPage('delivery-page')" style="margin-right: 15px;">
+                        ← กลับ
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="proceedToPayment()">
+                        ดำเนินการชำระเงิน 💳
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- หน้าอัปโหลดสลิป -->
+        <div id="payment-page" class="page">
+            <h2 style="color: #1e40af; margin-bottom: 30px; text-align: center; font-size: 1.8rem;">💳 ชำระเงินและอัปโหลดสลิป</h2>
+            
+            <div class="summary-box">
+                <h3 style="color: #1e40af; margin-bottom: 15px;">🏦 ข้อมูลการโอนเงิน</h3>
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <p><strong>ธนาคาร:</strong> กสิกรไทย</p>
+                    <p><strong>ชื่อบัญชี:</strong> สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+                    <p><strong>เลขที่บัญชี:</strong> 123-4-56789-0</p>
+                    <p><strong>จำนวนเงินที่ต้องโอน:</strong> <span style="color: #1e40af; font-weight: 600; font-size: 1.2rem;" id="payment-amount">0฿</span></p>
+                </div>
+            </div>
+
+            <div class="file-upload-area" onclick="document.getElementById('slip-file').click()">
+                <div style="font-size: 3rem; margin-bottom: 15px;">📄</div>
+                <h3 style="color: #1e40af; margin-bottom: 10px;">อัปโหลดสลิปการโอนเงิน</h3>
+                <p style="color: #6b7280;">คลิกหรือลากไฟล์มาวางที่นี่</p>
+                <p style="color: #6b7280; font-size: 0.9rem; margin-top: 10px;">รองรับไฟล์: JPG, PNG, PDF (ขนาดไม่เกิน 5MB)</p>
+                <input type="file" id="slip-file" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" onchange="handleFileUpload(this)">
+            </div>
+
+            <div id="file-preview" style="display: none; text-align: center; margin: 20px 0;">
+                <div style="color: #10b981; margin-bottom: 10px;">✅ ไฟล์ถูกเลือกแล้ว</div>
+                <div id="file-name" style="color: #6b7280;"></div>
+                <button type="button" class="btn btn-secondary" onclick="removeFile()" style="margin-top: 10px;">
+                    ลบไฟล์
+                </button>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="button" class="btn btn-secondary" onclick="goToPage('form-page')" style="margin-right: 15px;">
+                    ← กลับ
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitOrder()" id="submit-btn" disabled>
+                    ส่งข้อมูลการสั่งซื้อ 🚀
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div style="font-size: 2rem; margin-bottom: 15px;">⏳</div>
+                <p>กำลังส่งข้อมูล...</p>
+            </div>
+        </div>
+
+        <!-- หน้าสำเร็จ -->
+        <div id="success-page" class="page">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+                <h2 style="color: #10b981; margin-bottom: 20px; font-size: 2rem;">สั่งซื้อสำเร็จแล้ว!</h2>
+                <p style="color: #6b7280; margin-bottom: 30px; font-size: 1.1rem;">
+                    ขอบคุณสำหรับการสั่งซื้อ เราจะติดต่อกลับไปยังอีเมลที่ระบุไว้<br>
+                    เพื่อแจ้งรายละเอียดการจัดส่งหรือการรับสินค้า
+                </p>
+                
+                <div id="order-receipt" class="summary-box" style="text-align: left; margin: 30px 0;">
+                    <h3 style="color: #1e40af; margin-bottom: 15px; text-align: center;">🧾 ใบเสร็จการสั่งซื้อ</h3>
+                    <div id="receipt-content"></div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="button" class="btn btn-success" onclick="downloadReceipt()" style="margin-right: 15px;">
+                        💾 บันทึกใบเสร็จ
+                    </button>
+                    <button type="button" class="btn" onclick="startOver()">
+                        🛍️ สั่งซื้อใหม่
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedPackage = null;
+        let quantities = {
+            'cpset-m1': 0,
+            'cpset-w1': 0,
+            'dekcom-set': 0,
+            'full-collection': 0
+        };
+        let individualQuantities = {
+            polo: 0,
+            jacket: 0,
+            belt: 0,
+            ribbon: 0,
+            tieclip: 0
+        };
+        let selectedSizes = {};
+        let deliveryMethod = null;
+        let orderData = {};
+        let uploadedFile = null;
+
+        const prices = {
+            'cpset-m1': 199,
+            'cpset-w1': 199,
+            'dekcom-set': 999,
+            'full-collection': 1289,
+            polo: 359,
+            jacket: 790,
+            belt: 129,
+            ribbon: 119,
+            tieclip: 119
+        };
+
+        const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+        // Utility functions
+        function goToPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function validateEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        function validatePhone(phone) {
+            const regex = /^[0-9]{10}$/;
+            return regex.test(phone.replace(/[-\s]/g, ''));
+        }
+
+        function validateName(name) {
+            const regex = /^[ก-๙a-zA-Z\s]+$/;
+            return regex.test(name) && name.trim().length > 0;
+        }
+
+        // Package selection functions
+        function selectPackage(packageType) {
+            selectedPackage = packageType;
+            
+            // Reset all selections
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select current package
+            document.querySelector(`[data-package="${packageType}"]`).classList.add('selected');
+            
+            if (packageType === 'individual') {
+                document.getElementById('individual-items').style.display = 'block';
+                document.getElementById('package-sizes').style.display = 'none';
+            } else {
+                document.getElementById('individual-items').style.display = 'none';
+                if (packageType === 'dekcom-set' || packageType === 'full-collection') {
+                    showPackageSizes(packageType);
+                }
+            }
+            
+            updateOrderSummary();
+        }
+
+        function changeQuantity(packageType, delta) {
+            quantities[packageType] = Math.max(0, quantities[packageType] + delta);
+            document.getElementById(`qty-${packageType}`).textContent = quantities[packageType];
+            
+            if (packageType === 'dekcom-set' || packageType === 'full-collection') {
+                if (quantities[packageType] > 0) {
+                    showPackageSizes(packageType);
+                } else {
+                    document.getElementById('package-sizes').style.display = 'none';
+                }
+            }
+            
+            updateOrderSummary();
+                    }
+
+        function changeIndividualQuantity(item, delta) {
+            individualQuantities[item] = Math.max(0, individualQuantities[item] + delta);
+            document.getElementById(`qty-${item}`).textContent = individualQuantities[item];
+            
+            if (item === 'polo' || item === 'jacket') {
+                if (individualQuantities[item] > 0) {
+                    showIndividualSizes(item);
+                } else {
+                    document.getElementById(`${item}-sizes`).style.display = 'none';
+                }
+            }
+            
+            updateOrderSummary();
+        }
+
+        function showIndividualSizes(item) {
+            const sizesDiv = document.getElementById(`${item}-sizes`);
+            const selectorDiv = document.getElementById(`${item}-size-selector`);
+            
+            sizesDiv.style.display = 'block';
+            selectorDiv.innerHTML = '';
+            
+            for (let i = 1; i <= individualQuantities[item]; i++) {
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = `
+                    <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                        <div class="form-label">${item === 'polo' ? 'เสื้อโปโล' : 'เสื้อแจ็คเก็ต'} ตัวที่ ${i}:</div>
+                        <div class="size-selector">
+                            ${sizes.map(size => `
+                                <div class="size-option" data-item="${item}" data-index="${i}" data-size="${size}" onclick="selectSize('${item}', ${i}, '${size}')">
+                                    ${size}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                selectorDiv.appendChild(itemDiv);
+            }
+        }
+
+        function showPackageSizes(packageType) {
+            const sizesDiv = document.getElementById('package-sizes');
+            const contentDiv = document.getElementById('package-size-content');
+            
+            sizesDiv.style.display = 'block';
+            contentDiv.innerHTML = '';
+            
+            for (let i = 1; i <= quantities[packageType]; i++) {
+                const setDiv = document.createElement('div');
+                setDiv.innerHTML = `
+                    <div style="margin-bottom: 25px; padding: 20px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                        <h4 style="color: #1e40af; margin-bottom: 15px;">ชุดที่ ${i}</h4>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <div class="form-label">ไซส์เสื้อโปโล:</div>
+                            <div class="size-selector">
+                                ${sizes.map(size => `
+                                    <div class="size-option" data-package="${packageType}" data-set="${i}" data-item="polo" data-size="${size}" onclick="selectPackageSize('${packageType}', ${i}, 'polo', '${size}')">
+                                        ${size}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="form-label">ไซส์เสื้อแจ็คเก็ต:</div>
+                            <div class="size-selector">
+                                ${sizes.map(size => `
+                                    <div class="size-option" data-package="${packageType}" data-set="${i}" data-item="jacket" data-size="${size}" onclick="selectPackageSize('${packageType}', ${i}, 'jacket', '${size}')">
+                                        ${size}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contentDiv.appendChild(setDiv);
+            }
+        }
+
+        function selectSize(item, index, size) {
+            if (!selectedSizes[item]) selectedSizes[item] = {};
+            selectedSizes[item][index] = size;
+            
+            // Update UI
+            document.querySelectorAll(`[data-item="${item}"][data-index="${index}"]`).forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-item="${item}"][data-index="${index}"][data-size="${size}"]`).classList.add('selected');
+            
+            updateOrderSummary();
+        }
+
+        function selectPackageSize(packageType, setIndex, item, size) {
+            if (!selectedSizes[packageType]) selectedSizes[packageType] = {};
+            if (!selectedSizes[packageType][setIndex]) selectedSizes[packageType][setIndex] = {};
+            selectedSizes[packageType][setIndex][item] = size;
+            
+            // Update UI
+            document.querySelectorAll(`[data-package="${packageType}"][data-set="${setIndex}"][data-item="${item}"]`).forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-package="${packageType}"][data-set="${setIndex}"][data-item="${item}"][data-size="${size}"]`).classList.add('selected');
+            
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            const summaryDiv = document.getElementById('summary-content');
+            const totalPriceSpan = document.getElementById('total-price');
+            const proceedBtn = document.getElementById('proceed-btn');
+            
+            let totalPrice = 0;
+            let summaryHTML = '';
+            let hasItems = false;
+
+            if (selectedPackage === 'individual') {
+                Object.keys(individualQuantities).forEach(item => {
+                    if (individualQuantities[item] > 0) {
+                        hasItems = true;
+                        const itemPrice = prices[item] * individualQuantities[item];
+                        totalPrice += itemPrice;
+                        
+                        const itemNames = {
+                            polo: 'เสื้อโปโล',
+                            jacket: 'เสื้อแจ็คเก็ต',
+                            belt: 'หัวเข็มขัด',
+                            ribbon: 'ตุ้งติ้ง',
+                            tieclip: 'ที่หนีบเนคไท'
+                        };
+                        
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${itemNames[item]} x ${individualQuantities[item]}</span>
+                                <span>${itemPrice.toLocaleString()}฿</span>
+                            </div>
+                        `;
+                        
+                        // Show sizes if selected
+                        if ((item === 'polo' || item === 'jacket') && selectedSizes[item]) {
+                            Object.keys(selectedSizes[item]).forEach(index => {
+                                summaryHTML += `
+                                    <div style="margin-left: 20px; font-size: 0.9rem; color: #6b7280;">
+                                        ตัวที่ ${index}: ไซส์ ${selectedSizes[item][index] || 'ยังไม่เลือก'}
+                                    </div>
+                                `;
+                            });
+                        }
+                    }
+                });
+            } else if (selectedPackage) {
+                Object.keys(quantities).forEach(pkg => {
+                    if (quantities[pkg] > 0) {
+                        hasItems = true;
+                        const packagePrice = prices[pkg] * quantities[pkg];
+                        totalPrice += packagePrice;
+                        
+                        const packageNames = {
+                            'cpset-m1': 'CPSET M1 (ที่หนีบเนคไท + หัวเข็มขัด)',
+                            'cpset-w1': 'CPSET W1 (ตุ้งติ้ง + หัวเข็มขัด)',
+                            'dekcom-set': 'Dekcom SET (เสื้อโปโล + เสื้อแจ็คเก็ต)',
+                            'full-collection': 'Full Collection (ครบทุกชิ้น)'
+                        };
+                        
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${packageNames[pkg]} x ${quantities[pkg]}</span>
+                                <span>${packagePrice.toLocaleString()}฿</span>
+                            </div>
+                        `;
+                        
+                        // Show sizes for packages with shirts
+                        if ((pkg === 'dekcom-set' || pkg === 'full-collection') && selectedSizes[pkg]) {
+                            Object.keys(selectedSizes[pkg]).forEach(setIndex => {
+                                summaryHTML += `
+                                    <div style="margin-left: 20px; font-size: 0.9rem; color: #6b7280;">
+                                        ชุดที่ ${setIndex}: โปโล ${selectedSizes[pkg][setIndex].polo || 'ยังไม่เลือก'}, แจ็คเก็ต ${selectedSizes[pkg][setIndex].jacket || 'ยังไม่เลือก'}
+                                    </div>
+                                `;
+                            });
+                        }
+                    }
+                });
+            }
+
+            summaryDiv.innerHTML = summaryHTML;
+            totalPriceSpan.textContent = totalPrice.toLocaleString() + '฿';
+            
+            if (hasItems) {
+                document.getElementById('order-summary').style.display = 'block';
+                proceedBtn.style.display = 'inline-block';
+            } else {
+                document.getElementById('order-summary').style.display = 'none';
+                proceedBtn.style.display = 'none';
+            }
+        }
+
+        function proceedToDelivery() {
+            // Validate sizes are selected for items that need them
+            let missingInfo = [];
+            
+            if (selectedPackage === 'individual') {
+                ['polo', 'jacket'].forEach(item => {
+                    if (individualQuantities[item] > 0) {
+                        for (let i = 1; i <= individualQuantities[item]; i++) {
+                            if (!selectedSizes[item] || !selectedSizes[item][i]) {
+                                missingInfo.push(`${item === 'polo' ? 'เสื้อโปโล' : 'เสื้อแจ็คเก็ต'} ตัวที่ ${i}`);
+                            }
+                        }
+                    }
+                });
+            } else {
+                ['dekcom-set', 'full-collection'].forEach(pkg => {
+                    if (quantities[pkg] > 0) {
+                        for (let i = 1; i <= quantities[pkg]; i++) {
+                            if (!selectedSizes[pkg] || !selectedSizes[pkg][i] || 
+                                !selectedSizes[pkg][i].polo || !selectedSizes[pkg][i].jacket) {
+                                missingInfo.push(`${pkg === 'dekcom-set' ? 'Dekcom SET' : 'Full Collection'} ชุดที่ ${i}`);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (missingInfo.length > 0) {
+                alert('กรุณาเลือกไซส์สำหรับ: ' + missingInfo.join(', '));
+                return;
+            }
+            
+            goToPage('delivery-page');
+        }
+
+        function selectDelivery(method) {
+            deliveryMethod = method;
+            
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-delivery="${method}"]`).classList.add('selected');
+            
+            document.getElementById('delivery-proceed-btn').style.display = 'inline-block';
+        }
+
+        function proceedToForm() {
+            if (!deliveryMethod) {
+                alert('กรุณาเลือกวิธีการรับสินค้า');
+                return;
+            }
+            
+            // Show/hide shipping address based on delivery method
+            if (deliveryMethod === 'shipping') {
+                document.getElementById('shipping-address').style.display = 'block';
+                document.getElementById('shipping-fee-row').style.display = 'flex';
+            } else {
+                document.getElementById('shipping-address').style.display = 'none';
+                document.getElementById('shipping-fee-row').style.display = 'none';
+            }
+            
+            updateFinalSummary();
+            goToPage('form-page');
+        }
+
+        function updateFinalSummary() {
+            const summaryDiv = document.getElementById('final-summary-content');
+            const subtotalSpan = document.getElementById('subtotal-price');
+            const finalTotalSpan = document.getElementById('final-total-price');
+            
+            let subtotal = 0;
+            let summaryHTML = '';
+
+            // Calculate subtotal and build summary
+            if (selectedPackage === 'individual') {
+                Object.keys(individualQuantities).forEach(item => {
+                    if (individualQuantities[item] > 0) {
+                        const itemPrice = prices[item] * individualQuantities[item];
+                        subtotal += itemPrice;
+                        
+                        const itemNames = {
+                            polo: 'เสื้อโปโล',
+                            jacket: 'เสื้อแจ็คเก็ต',
+                            belt: 'หัวเข็มขัด',
+                            ribbon: 'ตุ้งติ้ง',
+                            tieclip: 'ที่หนีบเนคไท'
+                        };
+                        
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${itemNames[item]} x ${individualQuantities[item]}</span>
+                                <span>${itemPrice.toLocaleString()}฿</span>
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                Object.keys(quantities).forEach(pkg => {
+                    if (quantities[pkg] > 0) {
+                        const packagePrice = prices[pkg] * quantities[pkg];
+                        subtotal += packagePrice;
+                        
+                        const packageNames = {
+                            'cpset-m1': 'CPSET M1',
+                            'cpset-w1': 'CPSET W1',
+                            'dekcom-set': 'Dekcom SET',
+                            'full-collection': 'Full Collection'
+                        };
+                        
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${packageNames[pkg]} x ${quantities[pkg]}</span>
+                                <span>${packagePrice.toLocaleString()}฿</span>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            const shippingFee = deliveryMethod === 'shipping' ? 50 : 0;
+            const finalTotal = subtotal + shippingFee;
+
+            summaryDiv.innerHTML = summaryHTML;
+            subtotalSpan.textContent = subtotal.toLocaleString() + '฿';
+            finalTotalSpan.textContent = finalTotal.toLocaleString() + '฿';
+            
+            // Update payment amount
+            document.getElementById('payment-amount').textContent = finalTotal.toLocaleString() + '฿';
+        }
+
+        function proceedToPayment() {
+            // Validate form
+            const email = document.getElementById('email').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const phone = document.getElementById('phone').value;
+            const address = deliveryMethod === 'shipping' ? document.getElementById('address').value : '';
+
+            // Clear previous errors
+            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+
+            let hasErrors = false;
+
+            if (!validateEmail(email)) {
+                document.getElementById('email-error').textContent = 'กรุณากรอกอีเมลให้ถูกต้อง';
+                hasErrors = true;
+            }
+
+            if (!validateName(firstName)) {
+                document.getElementById('firstName-error').textContent = 'กรุณากรอกชื่อให้ถูกต้อง';
+                hasErrors = true;
+            }
+
+            if (!validateName(lastName)) {
+                document.getElementById('lastName-error').textContent = 'กรุณากรอกนามสกุลให้ถูกต้อง';
+                hasErrors = true;
+            }
+
+            if (!validatePhone(phone)) {
+                document.getElementById('phone-error').textContent = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก';
+                hasErrors = true;
+            }
+
+            if (deliveryMethod === 'shipping' && address.trim().length < 20) {
+                document.getElementById('address-error').textContent = 'กรุณากรอกที่อยู่ให้ครบถ้วน (อย่างน้อย 20 ตัวอักษร)';
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                return;
+            }
+
+            // Store order data
+            orderData = {
+                email,
+                firstName,
+                lastName,
+                phone,
+                address,
+                deliveryMethod,
+                selectedPackage,
+                quantities,
+                individualQuantities,
+                selectedSizes,
+                timestamp: new Date().toISOString()
+            };
+
+            goToPage('payment-page');
+        }
+
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('กรุณาเลือกไฟล์ JPG, PNG หรือ PDF เท่านั้น');
+                input.value = '';
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+                input.value = '';
+                return;
+            }
+
+            uploadedFile = file;
+            
+            // Show file preview
+            document.getElementById('file-preview').style.display = 'block';
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function removeFile() {
+            uploadedFile = null;
+            document.getElementById('slip-file').value = '';
+            document.getElementById('file-preview').style.display = 'none';
+            document.getElementById('submit-btn').disabled = true;
+        }
+
+        function generateOrderSummary() {
+            let summary = {
+                orderNumber: 'CP' + Date.now(),
+                timestamp: new Date().toLocaleString('th-TH'),
+                customer: {
+                    email: orderData.email,
+                    name: `${orderData.firstName} ${orderData.lastName}`,
+                    phone: orderData.phone,
+                    address: orderData.address
+                },
+                delivery: orderData.deliveryMethod === 'shipping' ? 'จัดส่งไปรษณีย์' : 'รับที่วิทยาลัย',
+                items: [],
+                pricing: {
+                    subtotal: 0,
+                    shipping: orderData.deliveryMethod === 'shipping' ? 50 : 0,
+                    total: 0
+                },
+                inventory: {
+                    polo: 0,
+                    jacket: 0,
+                    belt: 0,
+                    ribbon: 0,
+                    tieclip: 0
+                }
+            };
+
+            // Calculate items and inventory
+            if (selectedPackage === 'individual') {
+                Object.keys(individualQuantities).forEach(item => {
+                    if (individualQuantities[item] > 0) {
+                        const itemPrice = prices[item] * individualQuantities[item];
+                        summary.pricing.subtotal += itemPrice;
+                        summary.inventory[item] = individualQuantities[item];
+                        
+                        const itemNames = {
+                            polo: 'เสื้อโปโล',
+                            jacket: 'เสื้อแจ็คเก็ต',
+                            belt: 'หัวเข็มขัด',
+                            ribbon: 'ตุ้งติ้ง',
+                            tieclip: 'ที่หนีบเนคไท'
+                        };
+                        
+                        summary.items.push({
+                            name: itemNames[item],
+                            quantity: individualQuantities[item],
+                            price: prices[item],
+                            total: itemPrice,
+                            sizes: selectedSizes[item] || {}
+                        });
+                    }
+                });
+            } else {
+                Object.keys(quantities).forEach(pkg => {
+                    if (quantities[pkg] > 0) {
+                        const packagePrice = prices[pkg] * quantities[pkg];
+                        summary.pricing.subtotal += packagePrice;
+                        
+                        const packageNames = {
+                            'cpset-m1': 'CPSET M1 (ที่หนีบเนคไท + หัวเข็มขัด)',
+                            'cpset-w1': 'CPSET W1 (ตุ้งติ้ง + หัวเข็มขัด)',
+                            'dekcom-set': 'Dekcom SET (เสื้อโปโล + เสื้อแจ็คเก็ต)',
+                            'full-collection': 'Full Collection (ครบทุกชิ้น)'
+                        };
+                        
+                        summary.items.push({
+                            name: packageNames[pkg],
+                            quantity: quantities[pkg],
+                            price: prices[pkg],
+                            total: packagePrice,
+                            sizes: selectedSizes[pkg] || {}
+                        });
+
+                        // Update inventory based on package contents
+                        const packageContents = {
+                            'cpset-m1': { tieclip: 1, belt: 1 },
+                            'cpset-w1': { ribbon: 1, belt: 1 },
+                            'dekcom-set': { polo: 1, jacket: 1 },
+                            'full-collection': { polo: 1, jacket: 1, belt: 1, ribbon: 1, tieclip: 1 }
+                        };
+
+                        Object.keys(packageContents[pkg]).forEach(item => {
+                            summary.inventory[item] += packageContents[pkg][item] * quantities[pkg];
+                        });
+                    }
+                });
+            }
+
+            summary.pricing.total = summary.pricing.subtotal + summary.pricing.shipping;
+            return summary;
+        }
+
+        async function submitOrder() {
+            if (!uploadedFile) {
+                alert('กรุณาอัปโหลดสลิปการโอนเงิน');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('submit-btn').disabled = true;
+
+            try {
+                const orderSummary = generateOrderSummary();
+                
+                // Convert file to base64
+                const fileBase64 = await fileToBase64(uploadedFile);
+                
+                // Prepare data for Google Sheets
+                const submissionData = {
+                    ...orderSummary,
+                    slipFile: {
+                        name: uploadedFile.name,
+                        type: uploadedFile.type,
+                        data: fileBase64
+                    }
+                };
+
+                // Here you would send to Google Sheets endpoint
+                // For example: await fetch('YOUR_GOOGLE_FORMS_ENDPOINT', { method: 'POST', body: JSON.stringify(submissionData) });
+                await simulateSubmission(submissionData);
+                
+                // Show success page with receipt
+                showSuccessPage(orderSummary);
+                
+            } catch (error) {
+                console.error('Error submitting order:', error);
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+                document.getElementById('submit-btn').disabled = false;
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function simulateSubmission(data) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    console.log('Order submitted:', data);
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        function showSuccessPage(orderSummary) {
+            const receiptDiv = document.getElementById('receipt-content');
+            
+            let receiptHTML = `
+                <div class="summary-item" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px;">
+                    <span><strong>เลขที่คำสั่งซื้อ:</strong></span>
+                    <span>${orderSummary.orderNumber}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>วันที่สั่งซื้อ:</strong></span>
+                    <span>${orderSummary.timestamp}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>ชื่อผู้สั่งซื้อ:</strong></span>
+                    <span>${orderSummary.customer.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>อีเมล:</strong></span>
+                    <span>${orderSummary.customer.email}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>เบอร์โทร:</strong></span>
+                    <span>${orderSummary.customer.phone}</span>
+                </div>
+                <div class="summary-item" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px;">
+                    <span><strong>การจัดส่ง:</strong></span>
+                    <span>${orderSummary.delivery}</span>
+                </div>
+            `;
+
+            if (orderSummary.customer.address) {
+                receiptHTML += `
+                    <div class="summary-item" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px;">
+                        <span><strong>ที่อยู่จัดส่ง:</strong></span>
+                        <span style="white-space: pre-line;">${orderSummary.customer.address}</span>
+                    </div>
+                `;
+            }
+
+            receiptHTML += '<div style="margin: 15px 0;"><strong>รายการสินค้า:</strong></div>';
+            
+            orderSummary.items.forEach(item => {
+                receiptHTML += `
+                    <div class="summary-item">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>${item.total.toLocaleString()}฿</span>
+                    </div>
+                `;
+            });
+
+            receiptHTML += `
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 15px;">
+                    <div class="summary-item">
+                        <span>รวมค่าสินค้า:</span>
+                        <span>${orderSummary.pricing.subtotal.toLocaleString()}฿</span>
+                    </div>
+            `;
+
+            if (orderSummary.pricing.shipping > 0) {
+                receiptHTML += `
+                    <div class="summary-item">
+                        <span>ค่าจัดส่ง:</span>
+                        <span>${orderSummary.pricing.shipping.toLocaleString()}฿</span>
+                    </div>
+                `;
+            }
+
+            receiptHTML += `
+                    <div class="summary-item" style="font-weight: 600; font-size: 1.1rem;">
+                        <span>รวมทั้งหมด:</span>
+                        <span>${orderSummary.pricing.total.toLocaleString()}฿</span>
+                    </div>
+                </div>
+            `;
+
+            receiptDiv.innerHTML = receiptHTML;
+            goToPage('success-page');
+        }
+
+        function downloadReceipt() {
+            const receiptContent = document.getElementById('order-receipt').cloneNode(true);
+            
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>ใบเสร็จการสั่งซื้อ - CP Store</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                        .summary-box { background: #f8fafc; border-radius: 10px; padding: 20px; border-left: 4px solid #3b82f6; }
+                        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 5px 0; }
+                        h3 { color: #1e40af; margin-bottom: 15px; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    ${receiptContent.outerHTML}
+                    <div style="text-align: center; margin-top: 30px; color: #6b7280;">
+                        <p>ขอบคุณสำหรับการสั่งซื้อ</p>
+                        <p>สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function startOver() {
+            // Reset all variables
+            selectedPackage = null;
+            quantities = {
+                'cpset-m1': 0,
+                'cpset-w1': 0,
+                'dekcom-set': 0,
+                'full-collection': 0
+            };
+            individualQuantities = {
+                polo: 0,
+                jacket: 0,
+                belt: 0,
+                ribbon: 0,
+                tieclip: 0
+            };
+            selectedSizes = {};
+            deliveryMethod = null;
+            orderData = {};
+            uploadedFile = null;
+
+            // Reset UI
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('order-form').reset();
+            document.getElementById('slip-file').value = '';
+            
+            // Update quantity displays
+            ['cpset-m1', 'cpset-w1', 'dekcom-set', 'full-collection'].forEach(pkg => {
+                document.getElementById(`qty-${pkg}`).textContent = '0';
+            });
+            ['polo', 'jacket', 'belt', 'ribbon', 'tieclip'].forEach(item => {
+                document.getElementById(`qty-${item}`).textContent = '0';
+            });
+
+            // Hide elements
+            document.getElementById('individual-items').style.display = 'none';
+            document.getElementById('package-sizes').style.display = 'none';
+            document.getElementById('order-summary').style.display = 'none';
+            document.getElementById('proceed-btn').style.display = 'none';
+            document.getElementById('delivery-proceed-btn').style.display = 'none';
+            document.getElementById('file-preview').style.display = 'none';
+            
+            // Go back to first page
+            goToPage('products-page');
+        }
+
+        // File drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.querySelector('.file-upload-area');
+            
+            if (uploadArea) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, highlight, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, unhighlight, false);
+                });
+
+                function highlight() {
+                    uploadArea.classList.add('dragover');
+                }
+
+                function unhighlight() {
+                    uploadArea.classList.remove('dragover');
+                }
+
+                uploadArea.addEventListener('drop', handleDrop, false);
+
+                function handleDrop(e) {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    
+                    if (files.length > 0) {
+                        document.getElementById('slip-file').files = files;
+                        handleFileUpload(document.getElementById('slip-file'));
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

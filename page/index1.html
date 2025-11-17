@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสั่งซื้อสินค้า - วิทยาลัยการคอมพิวเตอร์</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .step {
+            display: none;
+            padding: 30px;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .step-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #ecf0f1;
+            margin: 0 5px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .step-item.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .step-item.completed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .package-card {
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .package-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .package-card.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .package-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .package-price {
+            font-size: 1.3em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .package-items {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .size-selector {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .size-selector.show {
+            display: grid;
+        }
+
+        .size-option {
+            padding: 10px;
+            text-align: center;
+            border: 2px solid #ecf0f1;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-option:hover {
+            border-color: #3498db;
+        }
+
+        .size-option.selected {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .delivery-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .delivery-option {
+            padding: 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delivery-option:hover {
+            border-color: #3498db;
+        }
+
+        .delivery-option.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+        }
+
+        .summary-total {
+            border-top: 2px solid #3498db;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .upload-area {
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .upload-area.dragover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        @media (max-width: 768px) {
+            .delivery-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .size-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 CP Store</h1>
+            <p>ระบบสั่งซื้อสินค้าวิทยาลัยการคอมพิวเตอร์</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step-item active" id="step-indicator-1">เลือกสินค้า</div>
+            <div class="step-item" id="step-indicator-2">กรอกข้อมูล</div>
+            <div class="step-item" id="step-indicator-3">สรุปรายการ</div>
+            <div class="step-item" id="step-indicator-4">อัปโหลดสลิป</div>
+        </div>
+
+        <!-- Step 1: เลือกสินค้า -->
+        <div class="step active" id="step1">
+            <h2>📦 เลือกแพ็คเกจสินค้า</h2>
+            
+            <div class="package-card" data-package="cp" data-price="0">
+                <div class="package-header">
+                    <div class="package-name">CP Package</div>
+                    <div class="package-price">เลือกได้</div>
+                </div>
+                <div class="package-items">เลือกซื้อสินค้าแต่ละชิ้นตามต้องการ</div>
+                <div id="cp-items" style="display: none;">
+                    <div class="form-group">
+                        <label>เลือกสินค้า:</label>
+                        <div>
+                            <label><input type="checkbox" name="cp-item" value="polo" data-price="350"> เสื้อโปโล (350 บาท)</label><br>
+                            <label><input type="checkbox" name="cp-item" value="jacket" data-price="450"> แจ็คเกต (450 บาท)</label><br>
+                            <label><input type="checkbox" name="cp-item" value="tungting" data-price="150"> ตุ้งติ้ง (150 บาท)</label><br>
+                            <label><input type="checkbox" name="cp-item" value="tie-clip" data-price="120"> ที่หนีบเนคไท (120 บาท)</label><br>
+                            <label><input type="checkbox" name="cp-item" value="belt-head" data-price="180"> หัวเข็มขัด (180 บาท)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="package-card" data-package="cpset-m1" data-price="300">
+                <div class="package-header">
+                    <div class="package-name">CPSET M1</div>
+                    <div class="package-price">300 บาท</div>
+                </div>
+                <div class="package-items">ที่หนีบเนคไท + หัวเข็มขัด</div>
+            </div>
+
+            <div class="package-card" data-package="cpset-w1" data-price="330">
+                <div class="package-header">
+                    <div class="package-name">CPSET W1</div>
+                    <div class="package-price">330 บาท</div>
+                </div>
+                <div class="package-items">ตุ้งติ้ง + หัวเข็มขัด</div>
+            </div>
+
+            <div class="package-card" data-package="dekcom" data-price="750">
+                <div class="package-header">
+                    <div class="package-name">Dekcom SET</div>
+                    <div class="package-price">750 บาท</div>
+                </div>
+                <div class="package-items">เสื้อโปโล + แจ็คเกต</div>
+            </div>
+
+            <div class="package-card" data-package="full" data-price="1200">
+                <div class="package-header">
+                    <div class="package-name">Full Collection</div>
+                    <div class="package-price">1,200 บาท</div>
+                </div>
+                <div class="package-items">ได้ทุกสินค้า (เสื้อโปโล + แจ็คเกต + ตุ้งติ้ง + ที่หนีบเนคไท + หัวเข็มขัด)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">จำนวน:</label>
+                <input type="number" id="quantity" min="1" value="1" max="10">
+            </div>
+
+            <!-- Size Selection -->
+            <div id="size-selection" class="size-selector">
+                <h3>เลือกไซส์เสื้อ:</h3>
+                <div id="polo-sizes" style="display: none;">
+                    <h4>ไซส์เสื้อโปโล:</h4>
+                    <div class="size-option" data-size="S">S</div>
+                    <div class="size-option" data-size="M">M</div>
+                    <div class="size-option" data-size="L">L</div>
+                    <div class="size-option" data-size="XL">XL</div>
+                    <div class="size-option" data-size="XXL">XXL</div>
+                </div>
+                <div id="jacket-sizes" style="display: none;">
+                    <h4>ไซส์แจ็คเกต:</h4>
+                    <div class="size-option" data-size="S">S</div>
+                    <div class="size-option" data-size="M">M</div>
+                    <div class="size-option" data-size="L">L</div>
+                    <div class="size-option" data-size="XL">XL</div>
+                    <div class="size-option" data-size="XXL">XXL</div>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="nextStep()">ถัดไป</button>
+            </div>
+        </div>
+
+        <!-- Step 2: กรอกข้อมูล -->
+        <div class="step" id="step2">
+            <h2>📝 กรอกข้อมูลส่วนตัว</h2>
+            
+            <div class="form-group">
+                <label for="email">อีเมล *</label>
+                <input type="email" id="email" required>
+                <div class="error" id="email-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="firstName">ชื่อ *</label>
+                <input type="text" id="firstName" required>
+                <div class="error" id="firstName-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">นามสกุล *</label>
+                <input type="text" id="lastName" required>
+                <div class="error" id="lastName-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">เบอร์โทรศัพท์ *</label>
+                <input type="tel" id="phone" required>
+                <div class="error" id="phone-error"></div>
+            </div>
+
+            <h3>🚚 เลือกวิธีการรับสินค้า</h3>
+            <div class="delivery-options">
+                <div class="delivery-option" data-delivery="pickup">
+                    <h4>รับที่วิทยาลัย</h4>
+                    <p>ฟรี</p>
+                </div>
+                <div class="delivery-option" data-delivery="delivery">
+                    <h4>จัดส่งทางไปรษณีย์</h4>
+                    <p>+50 บาท</p>
+                </div>
+            </div>
+
+            <div id="address-section" style="display: none;">
+                <div class="form-group">
+                    <label for="address">ที่อยู่สำหรับจัดส่ง *</label>
+                    <textarea id="address" rows="4" required></textarea>
+                    <div class="error" id="address-error"></div>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">ย้อนกลับ</button>
+                <button class="btn btn-primary" onclick="nextStep()">ถัดไป</button>
+            </div>
+        </div>
+
+        <!-- Step 3: สรุปรายการ -->
+        <div class="step" id="step3">
+            <h2>📋 สรุปรายการสั่งซื้อ</h2>
+            
+            <div class="summary" id="order-summary">
+                <!-- สรุปรายการจะแสดงที่นี่ -->
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">ย้อนกลับ</button>
+                <button class="btn btn-primary" onclick="nextStep()">ยืนยันรายการ</button>
+            </div>
+        </div>
+
+        <!-- Step 4: อัปโหลดสลิป -->
+        <div class="step" id="step4">
+            <h2>💳 อัปโหลดสลิปการโอนเงิน</h2>
+            
+            <div class="summary" id="payment-summary">
+                <!-- ข้อมูลการโอนเงินจะแสดงที่นี่ -->
+            </div>
+
+            <div class="form-group">
+                <label>อัปโหลดสลิปการโอนเงิน *</label>
+                <div class="upload-area" id="upload-area">
+                    <p>🖼️ ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
+                    <input type="file" id="slip-upload" accept="image/*" style="display: none;">
+                </div>
+                <div class="error" id="slip-error"></div>
+            </div>
+
+            <div id="slip-preview" style="display: none;">
+                <img id="slip-image" style="max-width: 300px; max-height: 300px; border-radius: 10px;">
+            </div>
+
+            <div class="buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">ย้อนกลับ</button>
+                <button class="btn btn-success" onclick="submitOrder()">เสร็จสิ้น</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedPackage = null;
+        let selectedItems = [];
+        let quantity = 1;
+        let poloSize = null;
+        let jacketSize = null;
+        let deliveryMethod = null;
+        let totalPrice = 0;
+        let slipFile = null;
+
+        // Package data
+        const packages = {
+            'cp': { name: 'CP Package', basePrice: 0, items: [] },
+            'cpset-m1': { name: 'CPSET M1', basePrice: 300, items: ['ที่หนีบเนคไท', 'หัวเข็มขัด'] },
+            'cpset-w1': { name: 'CPSET W1', basePrice: 330, items: ['ตุ้งติ้ง', 'หัวเข็มขัด'] },
+            'dekcom': { name: 'Dekcom SET', basePrice: 750, items: ['เสื้อโปโล', 'แจ็คเกต'] },
+            'full': { name: 'Full Collection', basePrice: 1200, items: ['เสื้อโปโล', 'แจ็คเกต', 'ตุ้งติ้ง', 'ที่หนีบเนคไท', 'หัวเข็มขัด'] }
+        };
+
+        // RegEx patterns
+        const patterns = {
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            phone: /^[0-9]{10}$/,
+            name: /^[ก-๙a-zA-Z\s]{2,}$/
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Package selection
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectPackage(this);
+                });
+            });
+
+            // CP Package items
+            document.querySelectorAll('input[name="cp-item"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateCPPackage);
+            });
+
+            // Quantity
+            document.getElementById('quantity').addEventListener('change', function() {
+                quantity = parseInt(this.value);
+                updatePriceDisplay();
+            });
+
+            // Size selection
+            document.querySelectorAll('.size-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectSize(this);
+                });
+            });
+
+            // Delivery options
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectDelivery(this);
+                });
+            });
+
+            // File upload
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('slip-upload');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+        }
+
+        function selectPackage(card) {
+            // Remove previous selection
+            document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+
+            selectedPackage = card.dataset.package;
+            
+            // Show/hide CP items
+            const cpItems = document.getElementById('cp-items');
+            if (selectedPackage === 'cp') {
+                cpItems.style.display = 'block';
+                updateCPPackage();
+            } else {
+                cpItems.style.display = 'none';
+            }
+
+            updateSizeDisplay();
+            updatePriceDisplay();
+        }
+
+        function updateCPPackage() {
+            selectedItems = [];
+            let price = 0;
+            
+            document.querySelectorAll('input[name="cp-item"]:checked').forEach(checkbox => {
+                selectedItems.push({
+                    name: checkbox.value,
+                    price: parseInt(checkbox.dataset.price)
+                });
+                price += parseInt(checkbox.dataset.price);
+            });
+
+            packages['cp'].basePrice = price;
+            updateSizeDisplay();
+            updatePriceDisplay();
+        }
+
+        function updateSizeDisplay() {
+            const sizeSelection = document.getElementById('size-selection');
+            const poloSizes = document.getElementById('polo-sizes');
+            const jacketSizes = document.getElementById('jacket-sizes');
+
+            let needsPolo = false;
+            let needsJacket = false;
+
+            if (selectedPackage === 'cp') {
+                needsPolo = selectedItems.some(item => item.name === 'polo');
+                needsJacket = selectedItems.some(item => item.name === 'jacket');
+            } else if (selectedPackage === 'dekcom' || selectedPackage === 'full') {
+                needsPolo = true;
+                needsJacket = true;
+            }
+
+            if (needsPolo || needsJacket) {
+                sizeSelection.classList.add('show');
+                poloSizes.style.display = needsPolo ? 'block' : 'none';
+                jacketSizes.style.display = needsJacket ? 'block' : 'none';
+            } else {
+                sizeSelection.classList.remove('show');
+            }
+        }
+
+        function selectSize(option) {
+            const parent = option.parentElement;
+            parent.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            if (parent.id === 'polo-sizes') {
+                poloSize = option.dataset.size;
+            } else if (parent.id === 'jacket-sizes') {
+                jacketSize = option.dataset.size;
+            }
+        }
+
+        function selectDelivery(option) {
+            document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            deliveryMethod = option.dataset.delivery;
+            const addressSection = document.getElementById('address-section');
+            
+            if (deliveryMethod === 'delivery') {
+                addressSection.style.display = 'block';
+            } else {
+                addressSection.style.display = 'none';
+            }
+
+            updatePriceDisplay();
+        }
+
+        function updatePriceDisplay() {
+            if (!selectedPackage) return;
+
+            totalPrice = packages[selectedPackage].basePrice * quantity;
+            
+            if (deliveryMethod === 'delivery') {
+                totalPrice += 50;
+            }
+
+            // Update price display in package card
+            const selectedCard = document.querySelector('.package-card.selected');
+            if (selectedCard) {
+                const priceElement = selectedCard.querySelector('.package-price');
+                if (selectedPackage === 'cp') {
+                    priceElement.textContent = `${packages[selectedPackage].basePrice} บาท`;
+                }
+            }
+        }
+
+        function validateStep(step) {
+            const errors = {};
+
+            if (step === 1) {
+                if (!selectedPackage) {
+                    alert('กรุณาเลือกแพ็คเกจสินค้า');
+                    return false;
+                }
+
+                // Check sizes if needed
+                const needsPolo = (selectedPackage === 'dekcom' || selectedPackage === 'full') || 
+                                 (selectedPackage === 'cp' && selectedItems.some(item => item.name === 'polo'));
+                const needsJacket = (selectedPackage === 'dekcom' || selectedPackage === 'full') || 
+                                   (selectedPackage === 'cp' && selectedItems.some(item => item.name === 'jacket'));
+
+                if (needsPolo && !poloSize) {
+                    alert('กรุณาเลือกไซส์เสื้อโปโล');
+                    return false;
+                }
+
+                if (needsJacket && !jacketSize) {
+                    alert('กรุณาเลือกไซส์แจ็คเกต');
+                    return false;
+                }
+            }
+
+            if (step === 2) {
+                const email = document.getElementById('email').value;
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const phone = document.getElementById('phone').value;
+                const address = document.getElementById('address').value;
+
+                // Clear previous errors
+                document.querySelectorAll('.error').forEach(error => error.textContent = '');
+
+                if (!patterns.email.test(email)) {
+                    document.getElementById('email-error').textContent = 'รูปแบบอีเมลไม่ถูกต้อง';
+                    errors.email = true;
+                }
+
+                if (!patterns.name.test(firstName)) {
+                    document.getElementById('firstName-error').textContent = 'กรุณากรอกชื่อให้ถูกต้อง';
+                    errors.firstName = true;
+                }
+
+                if (!patterns.name.test(lastName)) {
+                    document.getElementById('lastName-error').textContent = 'กรุณากรอกนามสกุลให้ถูกต้อง';
+                    errors.lastName = true;
+                }
+
+                if (!patterns.phone.test(phone)) {
+                    document.getElementById('phone-error').textContent = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก';
+                    errors.phone = true;
+                }
+
+                if (!deliveryMethod) {
+                    alert('กรุณาเลือกวิธีการรับสินค้า');
+                    return false;
+                }
+
+                if (deliveryMethod === 'delivery' && !address.trim()) {
+                    document.getElementById('address-error').textContent = 'กรุณากรอกที่อยู่สำหรับจัดส่ง';
+                    errors.address = true;
+                }
+
+                return Object.keys(errors).length === 0;
+            }
+
+            if (step === 4) {
+                if (!slipFile) {
+                    document.getElementById('slip-error').textContent = 'กรุณาอัปโหลดสลิปการโอนเงิน';
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function nextStep() {
+            if (!validateStep(currentStep)) return;
+
+            if (currentStep === 3) {
+                generateSummary();
+            }
+
+            if (currentStep === 4) {
+                generatePaymentInfo();
+            }
+
+            if (currentStep < 4) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active', 'completed'));
+
+            // Show current step
+            document.getElementById(`step${step}`).classList.add('active');
+            document.getElementById(`step-indicator-${step}`).classList.add('active');
+
+            // Mark completed steps
+            for (let i = 1; i < step; i++) {
+                document.getElementById(`step-indicator-${i}`).classList.add('completed');
+            }
+        }
+
+        function generateSummary() {
+            const summary = document.getElementById('order-summary');
+            updatePriceDisplay();
+
+            let itemsHtml = '';
+            if (selectedPackage === 'cp') {
+                selectedItems.forEach(item => {
+                    itemsHtml += `<div class="summary-item"><span>${getItemName(item.name)}</span><span>${item.price} บาท</span></div>`;
+                });
+            } else {
+                packages[selectedPackage].items.forEach(item => {
+                    itemsHtml += `<div class="summary-item"><span>${item}</span><span>-</span></div>`;
+                });
+            }
+
+            const deliveryFee = deliveryMethod === 'delivery' ? 50 : 0;
+            const subtotal = packages[selectedPackage].basePrice * quantity;
+
+            summary.innerHTML = `
+                <h3>รายการสินค้า</h3>
+                <div class="summary-item"><span>แพ็คเกจ: ${packages[selectedPackage].name}</span><span>x${quantity}</span></div>
+                ${itemsHtml}
+                ${poloSize ? `<div class="summary-item"><span>ไซส์เสื้อโปโล</span><span>${poloSize}</span></div>` : ''}
+                ${jacketSize ? `<div class="summary-item"><span>ไซส์แจ็คเกต</span><span>${jacketSize}</span></div>` : ''}
+                <div class="summary-item"><span>ราคาสินค้า</span><span>${subtotal} บาท</span></div>
+                <div class="summary-item"><span>ค่าจัดส่ง</span><span>${deliveryFee} บาท</span></div>
+                <div class="summary-item summary-total"><span>รวมทั้งสิ้น</span><span>${totalPrice} บาท</span></div>
+                
+                <h3>ข้อมูลผู้สั่ง</h3>
+                <div class="summary-item"><span>ชื่อ-นามสกุล</span><span>${document.getElementById('firstName').value} ${document.getElementById('lastName').value}</span></div>
+                <div class="summary-item"><span>อีเมล</span><span>${document.getElementById('email').value}</span></div>
+                <div class="summary-item"><span>เบอร์โทร</span><span>${document.getElementById('phone').value}</span></div>
+                <div class="summary-item"><span>การรับสินค้า</span><span>${deliveryMethod === 'pickup' ? 'รับที่วิทยาลัย' : 'จัดส่งทางไปรษณีย์'}</span></div>
+                ${deliveryMethod === 'delivery' ? `<div class="summary-item"><span>ที่อยู่จัดส่ง</span><span>${document.getElementById('address').value}</span></div>` : ''}
+            `;
+        }
+
+        function generatePaymentInfo() {
+            const summary = document.getElementById('payment-summary');
+            summary.innerHTML = `
+                <h3>ข้อมูลการโอนเงิน</h3>
+                <div class="summary-item"><span>ธนาคาร</span><span>ธนาคารกรุงไทย</span></div>
+                <div class="summary-item"><span>เลขที่บัญชี</span><span>123-4-56789-0</span></div>
+                <div class="summary-item"><span>ชื่อบัญชี</span><span>สโมสรนักศึกษาวิทยาลัยการคอมพิวเตอร์</span></div>
+                <div class="summary-item summary-total"><span>จำนวนเงินที่ต้องโอน</span><span>${totalPrice} บาท</span></div>
+            `;
+        }
+
+        function getItemName(item) {
+            const names = {
+                'polo': 'เสื้อโปโล',
+                'jacket': 'แจ็คเกต',
+                'tungting': 'ตุ้งติ้ง',
+                'tie-clip': 'ที่หนีบเนคไท',
+                'belt-head': 'หัวเข็มขัด'
+            };
+            return names[item] || item;
+        }
+
+        // File upload handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+                return;
+            }
+
+            slipFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('slip-preview');
+                const image = document.getElementById('slip-image');
+                image.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            document.getElementById('slip-error').textContent = '';
+        }
+
+        function submitOrder() {
+            if (!validateStep(4)) return;
+
+            // Prepare data for Google Form
+            const formData = {
+                package: packages[selectedPackage].name,
+                items: selectedPackage === 'cp' ? selectedItems.map(item => getItemName(item.name)).join(', ') : packages[selectedPackage].items.join(', '),
+                quantity: quantity,
+                poloSize: poloSize || '',
+                jacketSize: jacketSize || '',
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                deliveryMethod: deliveryMethod === 'pickup' ? 'รับที่วิทยาลัย' : 'จัดส่งทางไปรษณีย์',
+                address: document.getElementById('address').value || '',
+                totalPrice: totalPrice,
+                timestamp: new Date().toLocaleString('th-TH')
+            };
+
+            // Here you would typically send the data to Google Forms API
+            // For demo purposes, we'll just show a success message
+            console.log('Order submitted:', formData);
+            console.log('Slip file:', slipFile);
+
+            alert('✅ คำสั่งซื้อของคุณได้รับการบันทึกเรียบร้อยแล้ว!\n\nทางเราจะติดต่อกลับภายใน 24 ชั่วโมง\nขอบคุณที่ใช้บริการ CP Store');
+            
+                        // Reset form
+            resetForm();
+        }
+
+        function resetForm() {
+            // Reset all variables
+            currentStep = 1;
+            selectedPackage = null;
+            selectedItems = [];
+            quantity = 1;
+            poloSize = null;
+            jacketSize = null;
+            deliveryMethod = null;
+            totalPrice = 0;
+            slipFile = null;
+
+            // Reset form elements
+            document.getElementById('quantity').value = 1;
+            document.getElementById('email').value = '';
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('address').value = '';
+
+            // Clear selections
+            document.querySelectorAll('.package-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.delivery-option').forEach(option => option.classList.remove('selected'));
+            document.querySelectorAll('.size-option').forEach(option => option.classList.remove('selected'));
+            document.querySelectorAll('input[name="cp-item"]').forEach(checkbox => checkbox.checked = false);
+
+            // Hide elements
+            document.getElementById('cp-items').style.display = 'none';
+            document.getElementById('size-selection').classList.remove('show');
+            document.getElementById('address-section').style.display = 'none';
+            document.getElementById('slip-preview').style.display = 'none';
+
+            // Clear errors
+            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+
+            // Reset file input
+            document.getElementById('slip-upload').value = '';
+
+            // Go back to step 1
+            showStep(1);
+        }
+
+        // Google Form integration (replace with your actual Google Form URL and field names)
+        async function submitToGoogleForm(formData) {
+            const GOOGLE_FORM_URL = 'YOUR_GOOGLE_FORM_URL_HERE';
+            
+            const formDataToSend = new FormData();
+            
+            // Map your form fields to Google Form entry IDs
+            // You need to replace these with actual entry IDs from your Google Form
+            formDataToSend.append('entry.123456789', formData.package); // Package
+            formDataToSend.append('entry.987654321', formData.items); // Items
+            formDataToSend.append('entry.111111111', formData.quantity); // Quantity
+            formDataToSend.append('entry.222222222', formData.poloSize); // Polo Size
+            formDataToSend.append('entry.333333333', formData.jacketSize); // Jacket Size
+            formDataToSend.append('entry.444444444', formData.firstName); // First Name
+            formDataToSend.append('entry.555555555', formData.lastName); // Last Name
+            formDataToSend.append('entry.666666666', formData.email); // Email
+            formDataToSend.append('entry.777777777', formData.phone); // Phone
+            formDataToSend.append('entry.888888888', formData.deliveryMethod); // Delivery Method
+            formDataToSend.append('entry.999999999', formData.address); // Address
+            formDataToSend.append('entry.101010101', formData.totalPrice); // Total Price
+            formDataToSend.append('entry.121212121', formData.timestamp); // Timestamp
+
+            try {
+                const response = await fetch(GOOGLE_FORM_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formDataToSend
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Error submitting to Google Form:', error);
+                return false;
+            }
+        }
+
+        // Additional utility functions
+        function formatPrice(price) {
+            return new Intl.NumberFormat('th-TH').format(price);
+        }
+
+        function validateFileSize(file, maxSizeMB = 5) {
+            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+            return file.size <= maxSizeBytes;
+        }
+
+        function validateFileType(file, allowedTypes = ['image/jpeg', 'image/png', 'image/gif']) {
+            return allowedTypes.includes(file.type);
+        }
+
+        // Enhanced file validation
+        function validateSlipFile(file) {
+            const errors = [];
+
+            if (!validateFileType(file)) {
+                errors.push('กรุณาเลือกไฟล์รูปภาพ (JPEG, PNG, GIF)');
+            }
+
+            if (!validateFileSize(file)) {
+                errors.push('ขนาดไฟล์ต้องไม่เกิน 5MB');
+            }
+
+            return errors;
+        }
+
+        // Local storage functions for saving progress
+        function saveProgress() {
+            const progress = {
+                currentStep,
+                selectedPackage,
+                selectedItems,
+                quantity,
+                poloSize,
+                jacketSize,
+                deliveryMethod,
+                formData: {
+                    email: document.getElementById('email').value,
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value
+                }
+            };
+
+            localStorage.setItem('cpStoreProgress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('cpStoreProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                
+                // Restore form state
+                currentStep = progress.currentStep || 1;
+                selectedPackage = progress.selectedPackage;
+                selectedItems = progress.selectedItems || [];
+                quantity = progress.quantity || 1;
+                poloSize = progress.poloSize;
+                jacketSize = progress.jacketSize;
+                deliveryMethod = progress.deliveryMethod;
+
+                // Restore form values
+                if (progress.formData) {
+                    document.getElementById('email').value = progress.formData.email || '';
+                    document.getElementById('firstName').value = progress.formData.firstName || '';
+                    document.getElementById('lastName').value = progress.formData.lastName || '';
+                    document.getElementById('phone').value = progress.formData.phone || '';
+                    document.getElementById('address').value = progress.formData.address || '';
+                }
+
+                document.getElementById('quantity').value = quantity;
+
+                // Restore selections
+                if (selectedPackage) {
+                    const packageCard = document.querySelector(`[data-package="${selectedPackage}"]`);
+                    if (packageCard) {
+                        selectPackage(packageCard);
+                    }
+                }
+
+                if (deliveryMethod) {
+                    const deliveryOption = document.querySelector(`[data-delivery="${deliveryMethod}"]`);
+                    if (deliveryOption) {
+                        selectDelivery(deliveryOption);
+                    }
+                }
+
+                // Show appropriate step
+                showStep(currentStep);
+            }
+        }
+
+        function clearProgress() {
+            localStorage.removeItem('cpStoreProgress');
+        }
+
+        // Auto-save progress
+        function setupAutoSave() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', saveProgress);
+                input.addEventListener('input', debounce(saveProgress, 1000));
+            });
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Print/PDF functionality
+        function generatePDF() {
+            window.print();
+        }
+
+        // Enhanced form validation with more specific messages
+        function validateEmailAdvanced(email) {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailRegex.test(email)) {
+                return 'รูปแบบอีเมลไม่ถูกต้อง';
+            }
+            
+            // Check for common email providers
+            const commonProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];
+            const domain = email.split('@')[1];
+            
+            return null; // Valid
+        }
+
+        function validatePhoneAdvanced(phone) {
+            // Remove all non-digits
+            const cleanPhone = phone.replace(/\D/g, '');
+            
+            // Check for Thai mobile numbers
+            const thaiMobileRegex = /^(06|08|09)\d{8}$/;
+            const thaiLandlineRegex = /^(02|03|04|05|07)\d{7}$/;
+            
+            if (thaiMobileRegex.test(cleanPhone) || thaiLandlineRegex.test(cleanPhone)) {
+                return null; // Valid
+            }
+            
+            return 'กรุณากรอกเบอร์โทรศัพท์ไทยที่ถูกต้อง';
+        }
+
+        // Order tracking functionality
+        function generateOrderNumber() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 1000);
+            return `CP${timestamp.toString().slice(-6)}${random.toString().padStart(3, '0')}`;
+        }
+
+        // WhatsApp integration for customer support
+        function openWhatsAppSupport() {
+            const phoneNumber = '66812345678'; // Replace with actual support number
+            const message = encodeURIComponent('สวัสดีครับ ต้องการสอบถามเกี่ยวกับการสั่งซื้อสินค้า CP Store');
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Line integration
+        function openLineSupport() {
+            const lineUrl = 'https://line.me/ti/p/@cpstore'; // Replace with actual Line ID
+            window.open(lineUrl, '_blank');
+        }
+
+        // Enhanced UI interactions
+        function showLoading() {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loading-overlay';
+            loadingOverlay.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 30px;
+                        border-radius: 10px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            border: 4px solid #f3f3f3;
+                            border-top: 4px solid #3498db;
+                            border-radius: 50%;
+                            animation: spin 1s linear infinite;
+                            margin: 0 auto 20px;
+                        "></div>
+                        <p>กำลังส่งข้อมูล...</p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
+        }
+
+        function hideLoading() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.remove();
+            }
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupAutoSave();
+            loadProgress();
+            
+            // Add support buttons to header
+            const header = document.querySelector('.header');
+            const supportButtons = document.createElement('div');
+            supportButtons.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="openWhatsAppSupport()" style="margin: 5px;">
+                        💬 สอบถามทาง WhatsApp
+                    </button>
+                    <button class="btn btn-secondary" onclick="openLineSupport()" style="margin: 5px;">
+                        📱 สอบถามทาง Line
+                    </button>
+                </div>
+            `;
+            header.appendChild(supportButtons);
+        });
+
+        // Enhanced submitOrder function with Google Form integration
+        async function submitOrder() {
+            if (!validateStep(4)) return;
+
+            showLoading();
+
+            const orderNumber = generateOrderNumber();
+            
+            // Prepare data for Google Form
+            const formData = {
+                orderNumber: orderNumber,
+                package: packages[selectedPackage].name,
+                items: selectedPackage === 'cp' ? selectedItems.map(item => getItemName(item.name)).join(', ') : packages[selectedPackage].items.join(', '),
+                quantity: quantity,
+                poloSize: poloSize || '',
+                jacketSize: jacketSize || '',
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                deliveryMethod: deliveryMethod === 'pickup' ? 'รับที่วิทยาลัย' : 'จัดส่งทางไปรษณีย์',
+                address: document.getElementById('address').value || '',
+                totalPrice: totalPrice,
+                timestamp: new Date().toLocaleString('th-TH'),
+                status: 'รอการชำระเงิน'
+            };
+
+            try {
+                // Submit to Google Form (uncomment when you have the actual form URL)
+                // const success = await submitToGoogleForm(formData);
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                hideLoading();
+                
+                // Show success message with order number
+                const successMessage = `
+                    ✅ คำสั่งซื้อของคุณได้รับการบันทึกเรียบร้อยแล้ว!
+                    
+                    หมายเลขคำสั่งซื้อ: ${orderNumber}
+                    
+                    รายละเอียด:
+                    • แพ็คเกจ: ${formData.package}
+                    • จำนวน: ${formData.quantity} ชุด
+                    • ยอดรวม: ${formatPrice(formData.totalPrice)} บาท
+                    • การรับสินค้า: ${formData.deliveryMethod}
+                    
+                    ทางเราจะติดต่อกลับภายใน 24 ชั่วโมง
+                    ขอบคุณที่ใช้บริการ CP Store
+                    
+                    สามารถติดตามสถานะได้ที่:
+                    • WhatsApp: กดปุ่มสอบถามด้านบน
+                    • Line: @cpstore
+                `;
+                
+                alert(successMessage);
+                
+                // Clear saved progress
+                clearProgress();
+                
+                // Reset form
+                resetForm();
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Error submitting order:', error);
+                alert('❌ เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง หรือติดต่อทีมงาน');
+            }
+        }
+    </script>
+</body>
+</html>

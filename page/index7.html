@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ร้านขายของ - สโมสรนักศึกษา</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #1b365d;
+      color: white;
+    }
+    label {
+      color: #ffffffcc;
+    }
+    .input, select, textarea {
+      color: black;
+    }
+  </style>
+</head>
+
+<body class="font-sans">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-center mb-8">ร้านขายของ สโมสรนักศึกษา</h1>
+
+    <section id="products" class="bg-white text-black p-6 rounded-xl shadow-md mb-10">
+      <h2 class="text-2xl font-semibold mb-4">เลือกสินค้า</h2>
+      <form id="orderForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-4">
+            <h3 class="text-xl font-bold">ซื้อแยกชิ้น</h3>
+            <div>
+              <label>เสื้อโปโล (359 บาท)</label>
+              <input type="number" min="0" name="polo" class="input w-full" placeholder="จำนวน">
+              <select name="poloSizes[]" class="input w-full mt-1" multiple>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+              </select>
+            </div>
+            <div>
+              <label>เสื้อแจ็กเก็ต (790 บาท)</label>
+              <input type="number" min="0" name="jacket" class="input w-full" placeholder="จำนวน">
+              <select name="jacketSizes[]" class="input w-full mt-1" multiple>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+              </select>
+            </div>
+            <div><label>หัวเข็มขัด (129 บาท)</label><input type="number" min="0" name="belt" class="input w-full"></div>
+            <div><label>ตุ้งติ้ง (119 บาท)</label><input type="number" min="0" name="earring" class="input w-full"></div>
+            <div><label>ที่หนีบเนคไท (119 บาท)</label><input type="number" min="0" name="clip" class="input w-full"></div>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xl font-bold">แพ็คเกจเซต</h3>
+            <div><label>CPSET M1 - 199 บาท</label><input type="number" min="0" name="cp_m1" class="input w-full"></div>
+            <div><label>CPSET W1 - 199 บาท</label><input type="number" min="0" name="cp_w1" class="input w-full"></div>
+            <div>
+              <label>Dekcom SET - 999 บาท</label>
+              <input type="number" min="0" name="dekcom" class="input w-full">
+              <input type="text" name="dekcom_polo_sizes" class="input w-full" placeholder="ไซส์โปโล เช่น M,L">
+              <input type="text" name="dekcom_jacket_sizes" class="input w-full" placeholder="ไซส์แจ็กเก็ต เช่น M,L">
+            </div>
+            <div>
+              <label>Full Collection - 1289 บาท</label>
+              <input type="number" min="0" name="full" class="input w-full">
+              <input type="text" name="full_polo_size" class="input w-full" placeholder="ไซส์โปโล">
+              <input type="text" name="full_jacket_size" class="input w-full" placeholder="ไซส์แจ็กเก็ต">
+            </div>
+          </div>
+        </div>
+        <div class="mt-6">
+          <button type="button" onclick="calculateTotal()" class="bg-blue-700 text-white px-6 py-2 rounded">คำนวณราคารวม</button>
+          <p class="mt-4 text-xl font-bold" id="totalDisplay"></p>
+        </div>
+      </form>
+    </section>
+
+    <section id="shipping" class="bg-white text-black p-6 rounded-xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">ข้อมูลการจัดส่ง</h2>
+      <form id="shippingForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label>Email</label><input type="email" name="email" class="input w-full" required></div>
+          <div><label>ชื่อ - สกุล</label><input type="text" name="fullname" class="input w-full" required></div>
+          <div><label>เบอร์โทร</label><input type="tel" name="phone" pattern="0[0-9]{9}" class="input w-full" required></div>
+          <div>
+            <label>เลือกรูปแบบการรับสินค้า</label>
+            <select name="deliveryOption" id="deliveryOption" class="input w-full" onchange="toggleAddress()">
+              <option value="pickup">รับที่วิทยาลัย</option>
+              <option value="delivery">จัดส่งทางไปรษณีย์ (+50 บาท)</option>
+            </select>
+          </div>
+          <div id="addressField" style="display: none">
+            <label>ที่อยู่สำหรับจัดส่ง</label>
+            <textarea name="address" class="input w-full"></textarea>
+          </div>
+          <div><label>แนบสลิปโอนเงิน</label><input type="file" name="slip" accept="image/*" class="input w-full" required></div>
+        </div>
+        <div class="mt-6">
+          <button type="submit" class="bg-green-700 text-white px-6 py-2 rounded">เสร็จสิ้น</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="summary" class="hidden mt-8 bg-white text-black p-6 rounded-xl shadow-md">
+      <h2 class="text-2xl font-semibold mb-4">สรุปรายการสั่งซื้อ</h2>
+      <pre id="summaryOutput" class="text-sm bg-gray-100 p-4 overflow-x-auto"></pre>
+    </section>
+  </div>
+
+  <script>
+    function calculateTotal() {
+      const price = { polo: 359, jacket: 790, belt: 129, clip: 119, earring: 119, cp_m1: 199, cp_w1: 199, dekcom: 999, full: 1289 };
+      let total = 0;
+      for (let key in price) {
+        const val = parseInt(document.querySelector(`[name="${key}"]`).value) || 0;
+        total += val * price[key];
+      }
+      const delivery = document.querySelector("#deliveryOption").value;
+      if (delivery === "delivery") total += 50;
+      document.querySelector("#totalDisplay").innerText = `รวมเป็นเงิน ${total} บาท`;
+    }
+
+    function toggleAddress() {
+      const delivery = document.querySelector("#deliveryOption").value;
+      const addressField = document.querySelector("#addressField");
+      addressField.style.display = delivery === "delivery" ? "block" : "none";
+    }
+
+    document.querySelector('#shippingForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(document.querySelector('#orderForm'));
+      const shippingData = new FormData(document.querySelector('#shippingForm'));
+
+      let summary = {};
+      for (let [key, value] of formData.entries()) summary[key] = value;
+      for (let [key, value] of shippingData.entries()) summary[key] = value;
+
+      // Validate email/phone
+      const emailValid = /^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(summary.email);
+      const phoneValid = /^0[0-9]{9}$/.test(summary.phone);
+      if (!emailValid || !phoneValid) return alert("กรุณากรอกข้อมูล Email หรือ เบอร์โทร ให้ถูกต้อง");
+
+      document.querySelector("#summaryOutput").innerText = JSON.stringify(summary, null, 2);
+      document.querySelector("#summary").classList.remove("hidden");
+
+      // TODO: Send to Google Form
+      // You can use `fetch` with Form submit endpoint here
+
+      setTimeout(() => {
+        alert("ส่งข้อมูลเรียบร้อย ขอบคุณที่สั่งซื้อ");
+        window.location.reload();
+      }, 2000);
+    });
+  </script>
+</body>
+
+</html>

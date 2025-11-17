@@ -1,0 +1,27 @@
+{
+    "package": "cpset-m1",
+    "packageName": "CPSET M1",
+    "quantity": 5,
+    "sizes": {
+        "polo": null,
+        "jacket": null
+    },
+    "notes": "",
+    "email": "Kittichai@example.com",
+    "firstname": "กิตติชัย",
+    "lastname": "รักษาวงค์",
+    "phone": "0959611962",
+    "status": "other",
+    "year": "",
+    "address": "",
+    "deliveryType": "pickup",
+    "totalAmount": 995,
+    "items": {
+        "polo": 0,
+        "jacket": 0,
+        "belt": 5,
+        "tung_ting": 0,
+        "tie_clip": 5
+    },
+    "slip": ""
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Slip Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ทดสอบอัปโหลดสลิป</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="orderRef">หมายเลขคำสั่งซื้อ:</label>
+            <input type="text" id="orderRef" name="orderRef" required placeholder="เช่น SMO2025111762949974201">
+        </div>
+
+        <div class="form-group">
+            <label for="slip">ไฟล์สลิป:</label>
+            <input type="file" id="slip" name="slip" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="btn">อัปโหลดสลิป</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const orderRef = document.getElementById('orderRef').value;
+            const slipFile = document.getElementById('slip').files[0];
+
+            if (!slipFile) {
+                showResult('กรุณาเลือกไฟล์สลิป', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'กำลังอัปโหลด...';
+
+            try {
+                // Convert file to base64
+                const fileReader = new FileReader();
+                fileReader.onload = async function (e) {
+                    const base64Data = e.target.result;
+
+                    const uploadData = {
+                        file: base64Data,
+                        fileName: slipFile.name,
+                        type: slipFile.type,
+                        orderRef: orderRef
+                    };
+
+                    const response = await fetch('/upload-slip', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(uploadData)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        let message = `อัปโหลดสำเร็จ! ไฟล์: ${result.fileName}`;
+                        if (result.viewLink) {
+                            message += `<br><a href="${result.viewLink}" target="_blank">ดูไฟล์</a>`;
+                        }
+                        showResult(message, 'success');
+                    } else {
+                        showResult(`เกิดข้อผิดพลาด: ${result.message || result.error}`, 'error');
+                    }
+                };
+
+                fileReader.readAsDataURL(slipFile);
+            } catch (error) {
+                showResult(`เกิดข้อผิดพลาด: ${error.message}`, 'error');
+            }
+        }); function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = type;
+        }
+    </script>
+</body>
+
+</html>

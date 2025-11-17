@@ -1,0 +1,95 @@
+  body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .card {
+            border-radius: 0.8rem;
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.1);
+        }
+        
+        .card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .card-header-blue {
+            background-color: #0d6efd;
+            color: white;
+            border-top-left-radius: 0.7rem !important;
+            border-top-right-radius: 0.7rem !important;
+        }
+        
+        .size-btn {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            background-color: white;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .size-btn:hover {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .size-btn.selected {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        
+        .delivery-option {
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            border-radius: 0.8rem;
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .delivery-option:hover {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .delivery-option.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .qr-code-img {
+            max-width: 200px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+
+        .size-btn {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.size-btn:hover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.size-btn.selected {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}

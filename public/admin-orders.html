@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Order Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <h1 class="navbar-brand">
+                <i class="fas fa-cogs me-2"></i>Admin - Order Management
+            </h1>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-search me-2"></i>ค้นหาคำสั่งซื้อ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">หมายเลขคำสั่งซื้อ</label>
+                            <input type="text" id="searchOrderRef" class="form-control" placeholder="ใส่หมายเลขคำสั่งซื้อ">
+                        </div>
+                        <button class="btn btn-primary" onclick="searchOrder()">
+                            <i class="fas fa-search me-2"></i>ค้นหา
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-edit me-2"></i>อัปเดตสถานะ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">หมายเลขคำสั่งซื้อ</label>
+                            <input type="text" id="updateOrderRef" class="form-control" placeholder="หมายเลขคำสั่งซื้อ">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">สถานะใหม่</label>
+                            <select id="newStatus" class="form-select">
+                                <option value="pending">รอการยืนยัน</option>
+                                <option value="confirmed">ยืนยันแล้ว</option>
+                                <option value="preparing">กำลังเตรียมสินค้า</option>
+                                <option value="shipping">จัดส่งแล้ว</option>
+                                <option value="delivered">จัดส่งสำเร็จ</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">รหัสติดตาม (ถ้ามี)</label>
+                            <input type="text" id="trackingCode" class="form-control" placeholder="รหัสติดตาม">
+                        </div>
+                        <button class="btn btn-success" onclick="updateOrderStatus()">
+                            <i class="fas fa-save me-2"></i>อัปเดต
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details Display -->
+        <div id="orderDetails" class="mt-4" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>รายละเอียดคำสั่งซื้อ</h5>
+                </div>
+                <div class="card-body">
+                    <div id="orderDetailsContent">
+                        <!-- Order details will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function searchOrder() {
+            const orderRef = document.getElementById('searchOrderRef').value.trim();
+            
+            if (!orderRef) {
+                Swal.fire('คำเตือน', 'กรุณาใส่หมายเลขคำสั่งซื้อ', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/track-order/${orderRef}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayOrderDetails(result.order);
+                } else {
+                    Swal.fire('ไม่พบข้อมูล', result.error, 'error');
+                }
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถค้นหาข้อมูลได้', 'error');
+            }
+        }
+
+        function displayOrderDetails(order) {
+            const detailsDiv = document.getElementById('orderDetailsContent');
+            const statusMap = {
+                'pending': 'รอการยืนยัน',
+                'confirmed': 'ยืนยันแล้ว',
+                'preparing': 'กำลังเตรียมสินค้า',
+                'shipping': 'จัดส่งแล้ว',
+                'delivered': 'จัดส่งสำเร็จ'
+            };
+            
+            detailsDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>หมายเลขคำสั่งซื้อ:</strong> ${order.orderNumber}</p>
+                        <p><strong>ชื่อลูกค้า:</strong> ${order.customerName}</p>
+                        <p><strong>อีเมล:</strong> ${order.email}</p>
+                        <p><strong>เบอร์โทร:</strong> ${order.phone}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>สถานะ:</strong> <span class="badge bg-primary">${statusMap[order.status]}</span></p>
+                        <p><strong>ราคารวม:</strong> ${order.totalAmount} บาท</p>
+                        <p><strong>วิธีการรับ:</strong> ${order.deliveryType === 'shipping' ? 'จัดส่งทางไปรษณีย์' : 'รับที่วิทยาลัย'}</p>
+                        ${order.trackingCode ? `<p><strong>รหัสติดตาม:</strong> ${order.trackingCode}</p>` : ''}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <p><strong>วันที่สั่ง:</strong> ${new Date(order.orderDate).toLocaleDateString('th-TH')}</p>
+                        <p><strong>อัปเดตล่าสุด:</strong> ${new Date(order.lastUpdate).toLocaleDateString('th-TH')}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('orderDetails').style.display = 'block';
+        }
+
+        async function updateOrderStatus() {
+            const orderRef = document.getElementById('updateOrderRef').value.trim();
+            const status = document.getElementById('newStatus').value;
+            const trackingCode = document.getElementById('trackingCode').value.trim();
+            
+            if (!orderRef || !status) {
+                Swal.fire('คำเตือน', 'กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/update-order-status/${orderRef}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: status,
+                        trackingCode: trackingCode
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire('สำเร็จ', 'อัปเดตสถานะเรียบร้อยแล้ว', 'success');
+                    // Clear form
+                    document.getElementById('updateOrderRef').value = '';
+                    document.getElementById('trackingCode').value = '';
+                } else {
+                    Swal.fire('ข้อผิดพลาด', result.error, 'error');
+                }
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คำสั่งซื้อสำเร็จ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Sarabun', Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .header p {
+            color: #666;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+        }
+        
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .order-summary h2 {
+            color: #007bff;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            font-weight: bold;
+        }
+        
+        .info-row {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .info-label {
+            color: #333;
+            font-weight: bold;
+            min-width: 120px;
+        }
+        
+        .info-value {
+            color: #666;
+            flex: 1;
+        }
+        
+        .package-info {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        
+        .package-info div {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .total-section {
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .total-amount {
+            color: #1976d2;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .notes-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .notes-label {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>คำสั่งซื้อสำเร็จ!</h1>
+                <p>ขอบคุณสำหรับการสั่งซื้อ<br>หากไม่ได้รับอีเมลยืนยันคำสั่งซื้อ กรุณาติดต่อ Facebook สโมสรนักศึกษาอย่างเร็วที่สุด</p>
+            </div>
+            
+            <div class="order-summary">
+                <h2>สรุปการสั่งซื้อ</h2>
+                
+                <div class="info-row">
+                    <span class="info-label">หมายเลขอ้างอิง:</span>
+                    <span class="info-value">SMO2025061751091293262</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">แพ็คเก็จ:</span>
+                    <span class="info-value">ซื้อแยกชิ้น</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">เสื้อโปโล:</span>
+                    <span class="info-value">1 ชิ้น</span>
+                </div>
+                
+                <div class="package-info">
+                    <div>- ตัวที่ 1: ไซส์ M</div>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">วันที่สั่งซื้อ:</span>
+                    <span class="info-value">28 มิถุนายน 2568</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">ชื่อ-นามสกุล:</span>
+                    <span class="info-value">ณัฐวิชช์ วารินทร์ธนากานต์</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">อีเมล:</span>
+                    <span class="info-value">jasonrew1234@gmail.com</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">เบอร์โทร:</span>
+                    <span class="info-value">0808628297</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">วิธีรับสินค้า:</span>
+                    <span class="info-value">รับที่วิทยาลัย</span>
+                </div>
+                
+                <div class="total-section">
+                    <div class="total-amount">ยอดรวม: 359 บาท</div>
+                </div>
+            </div>
+            
+            <div class="notes-section">
+                <div class="notes-label">หมายเหตุ:</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
