@@ -317,11 +317,12 @@ class GoogleSheetsService {
         throw new Error(`Order ${orderRef} not found in Google Sheets`);
       }
 
-      // อัปเดตข้อมูลสลิป
+      // อัปเดตข้อมูลสลิป - ใช้ orderRef ในชื่อไฟล์เพื่อให้ตรงกัน
+      const slipFileName = `${orderRef}_${fileName}`;
       orderRow.set("slip_data", base64Data);
-      orderRow.set("slip_filename", fileName);
+      orderRow.set("slip_filename", slipFileName);
       orderRow.set("slip_type", fileType);
-      orderRow.set("slip_url", `data:${fileType};base64,${base64Data}`);
+      orderRow.set("slip_url", `/api/slip-file/${slipFileName}`);
       orderRow.set("updated_at", new Date().toISOString());
 
       await orderRow.save();

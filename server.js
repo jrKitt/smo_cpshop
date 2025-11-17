@@ -229,7 +229,7 @@ app.post("/upload-slip", async (req, res) => {
         const uploadResult = await sheetsService.uploadSlip(
           orderRef,
           base64Data,
-          finalFileName,
+          processedFileName, // ใช้ชื่อไฟล์เดิมที่ไม่มี orderRef ซ้ำ
           type
         );
 
@@ -370,10 +370,38 @@ app.get("/api/slips/:orderRef", async (req, res) => {
   }
 });
 
-// API สำหรับให้บริการไฟล์สลิปใน Vercel
-app.get("/api/slip-file/:fileName", (req, res) => {
+// API สำหรับให้บริการไฟล์สลิปใน Vercel - รองรับทั้ง file และ base64 จาก Sheets
+app.get("/api/slip-file/:fileName", async (req, res) => {
   try {
     const { fileName } = req.params;
+
+    // พยายามดึงข้อมูลจาก Google Sheets ก่อน (สำหรับไฟล์ที่เก็บเป็น base64)
+    try {
+      // แยก orderRef จาก fileName (format: orderRef_originalFileName)
+      const orderRef = fileName.split("_")[0];
+
+      if (orderRef && orderRef.startsWith("SMO")) {
+        const slipsFromSheets = await sheetsService.getSlips();
+        const slip = slipsFromSheets.find((s) => s.orderRef === orderRef);
+
+        if (slip && slip.base64Data) {
+          // ส่งรูปภาพจาก base64 data
+          const buffer = Buffer.from(slip.base64Data, "base64");
+          const contentType = slip.fileType || "image/jpeg";
+
+          res.setHeader("Content-Type", contentType);
+          res.setHeader("Cache-Control", "public, max-age=3600");
+          return res.send(buffer);
+        }
+      }
+    } catch (sheetsError) {
+      console.log(
+        "Google Sheets lookup failed, trying local file:",
+        sheetsError.message
+      );
+    }
+
+    // Fallback: ดึงจากไฟล์ local
     const filePath = process.env.VERCEL
       ? path.join("/tmp/slips", fileName)
       : path.join(__dirname, "public", "slips", fileName);
