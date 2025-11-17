@@ -914,7 +914,7 @@ async function uploadSlipViaServer(file, base64Data, orderRef) {
   try {
     const uploadData = {
       file: base64Data,
-      fileName: `ORDER_${Date.now()}_${sanitizeText(
+      fileName: `${orderRef}_${sanitizeText(
         document.getElementById("firstname").value.trim()
       )}_${sanitizeText(document.getElementById("lastname").value.trim())}`,
       type: "image/jpeg",
