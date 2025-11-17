@@ -29,6 +29,9 @@ const SHEETS_CONFIG = {
     "items",
     "notes",
     "slip_url",
+    "slip_data",
+    "slip_filename",
+    "slip_type",
     "tracking_code",
     "order_status",
     "created_at",
@@ -294,6 +297,75 @@ class GoogleSheetsService {
         "❌ Error getting all orders from Google Sheets:",
         error.message
       );
+      throw error;
+    }
+  }
+
+  async uploadSlip(orderRef, base64Data, fileName, fileType) {
+    try {
+      if (!this.ordersSheet) {
+        await this.initialize();
+      }
+
+      console.log("Uploading slip to Google Sheets for order:", orderRef);
+
+      // หาคำสั่งซื้อตาม orderRef
+      const rows = await this.ordersSheet.getRows();
+      const orderRow = rows.find((row) => row.get("order_ref") === orderRef);
+
+      if (!orderRow) {
+        throw new Error(`Order ${orderRef} not found in Google Sheets`);
+      }
+
+      // อัปเดตข้อมูลสลิป
+      orderRow.set("slip_data", base64Data);
+      orderRow.set("slip_filename", fileName);
+      orderRow.set("slip_type", fileType);
+      orderRow.set("slip_url", `data:${fileType};base64,${base64Data}`);
+      orderRow.set("updated_at", new Date().toISOString());
+
+      await orderRow.save();
+
+      console.log("Slip uploaded to Google Sheets successfully:", fileName);
+
+      return {
+        success: true,
+        message: "Slip uploaded to Google Sheets successfully",
+        orderRef: orderRef,
+      };
+    } catch (error) {
+      console.error("Error uploading slip to Google Sheets:", error.message);
+      throw error;
+    }
+  }
+
+  async getSlips() {
+    try {
+      if (!this.ordersSheet) {
+        await this.initialize();
+      }
+
+      const rows = await this.ordersSheet.getRows();
+
+      // กรองเฉพาะออร์เดอร์ที่มีสลิป
+      const slips = rows
+        .filter((row) => row.get("slip_data") && row.get("slip_data").trim())
+        .map((row) => ({
+          orderRef: row.get("order_ref"),
+          fileName: row.get("slip_filename") || "unknown.jpg",
+          originalFileName: row.get("slip_filename") || "unknown.jpg",
+          uploadDate: row.get("updated_at") || row.get("created_at"),
+          fileType: row.get("slip_type") || "image/jpeg",
+          base64Data: row.get("slip_data"),
+          customerName: `${row.get("firstname")} ${row.get("lastname")}`,
+          packageName: row.get("package_name"),
+          totalAmount: row.get("total_amount"),
+        }));
+
+      console.log("Retrieved", slips.length, "slips from Google Sheets");
+      return slips;
+    } catch (error) {
+      console.error("Error getting slips from Google Sheets:", error.message);
       throw error;
     }
   }

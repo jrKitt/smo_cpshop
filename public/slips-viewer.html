@@ -337,7 +337,6 @@
                 updateStats();
             } catch (error) {
                 console.error('Error loading slips:', error);
-                showError('ไม่สามารถโหลดข้อมูลสลิปได้');
             } finally {
                 hideLoading();
             }
@@ -356,29 +355,64 @@
 
             noSlips.style.display = 'none';
 
-            container.innerHTML = slips.map(slip => `
+            container.innerHTML = slips.map(slip => {
+                // ตรวจสอบว่าเป็น base64 data หรือ file path
+                let imageSrc = '';
+                if (slip.base64Data) {
+                    // ใช้ base64 data จาก Google Sheets
+                    imageSrc = `data:${slip.fileType || 'image/jpeg'};base64,${slip.base64Data}`;
+                } else if (slip.filePath) {
+                    // ใช้ file path แบบเดิม
+                    imageSrc = slip.filePath;
+                } else {
+                    // fallback เป็นรูป placeholder
+                    imageSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                }
+
+                return `
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="card slip-card h-100" onclick="showSlipModal('${slip.orderRef}')">
                         <div class="card-body">
                             <div class="text-center mb-3">
-                                <img src="${slip.filePath}" class="slip-image w-100" alt="สลิป" 
+                                <img src="${imageSrc}" class="slip-image w-100" alt="สลิป" 
                                      onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg=='">
                             </div>
                             <h6 class="card-title text-center">
                                 <span class="badge bg-primary order-ref-badge">${slip.orderRef}</span>
                             </h6>
+                            <div class="text-center mb-2">
+                                ${slip.customerName ? `
+                                    <p class="card-text text-center text-muted small mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        ${slip.customerName}
+                                    </p>
+                                ` : ''}
+                                ${slip.packageName ? `
+                                    <p class="card-text text-center text-muted small mb-1">
+                                        <i class="fas fa-box me-1"></i>
+                                        ${slip.packageName}
+                                    </p>
+                                ` : ''}
+                                ${slip.totalAmount ? `
+                                    <p class="card-text text-center text-success small mb-1">
+                                        <i class="fas fa-money-bill me-1"></i>
+                                        ฿${slip.totalAmount}
+                                    </p>
+                                ` : ''}
+                            </div>
                             <p class="card-text text-center text-muted small">
                                 <i class="fas fa-calendar me-1"></i>
                                 ${formatDate(slip.uploadDate)}
                             </p>
                             <p class="card-text text-center text-muted small">
                                 <i class="fas fa-file me-1"></i>
-                                ${slip.originalFileName}
+                                ${slip.originalFileName || slip.fileName || 'unknown.jpg'}
                             </p>
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // แสดง Modal
@@ -386,13 +420,30 @@
             const slip = allSlips.find(s => s.orderRef === orderRef);
             if (!slip) return;
 
+            // ตรวจสอบว่าเป็น base64 data หรือ file path
+            let imageSrc = '';
+            if (slip.base64Data) {
+                // ใช้ base64 data จาก Google Sheets
+                imageSrc = `data:${slip.fileType || 'image/jpeg'};base64,${slip.base64Data}`;
+            } else if (slip.filePath) {
+                // ใช้ file path แบบเดิม
+                imageSrc = slip.filePath;
+            }
+
             document.getElementById('modalTitle').textContent = `สลิปการโอนเงิน - ${orderRef}`;
-            document.getElementById('modalImage').src = slip.filePath;
+            document.getElementById('modalImage').src = imageSrc;
             document.getElementById('modalOrderRef').textContent = slip.orderRef;
             document.getElementById('modalDate').textContent = formatDate(slip.uploadDate);
-            document.getElementById('modalFileName').textContent = slip.originalFileName;
-            document.getElementById('downloadLink').href = slip.filePath;
-            document.getElementById('downloadLink').download = slip.originalFileName;
+            document.getElementById('modalFileName').textContent = slip.originalFileName || slip.fileName || 'unknown.jpg';
+
+            // สำหรับ download link
+            if (slip.base64Data) {
+                // สร้าง download link สำหรับ base64 data
+                document.getElementById('downloadLink').href = imageSrc;
+            } else {
+                document.getElementById('downloadLink').href = slip.filePath || '#';
+            }
+            document.getElementById('downloadLink').download = slip.originalFileName || slip.fileName || 'slip.jpg';
 
             const modal = new bootstrap.Modal(document.getElementById('slipModal'));
             modal.show();

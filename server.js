@@ -223,6 +223,26 @@ app.post("/upload-slip", async (req, res) => {
 
     console.log("Slip saved successfully:", finalFileName);
 
+    // อัปโหลดสลิปลง Google Sheets (primary method)
+    if (orderRef) {
+      try {
+        await sheetsService.uploadSlip(
+          orderRef,
+          base64Data,
+          finalFileName,
+          type
+        );
+        console.log("Slip uploaded to Google Sheets successfully");
+      } catch (sheetsError) {
+        console.log(
+          "Google Sheets upload failed, but local save succeeded:",
+          sheetsError.message
+        );
+      }
+    } else {
+      console.log("No orderRef provided - skipping Google Sheets upload");
+    }
+
     // พยายามอัพโหลดไปยัง Google Drive ด้วย (backup) - เฉพาะ local development
     if (!process.env.VERCEL) {
       try {
@@ -263,8 +283,18 @@ app.post("/upload-slip", async (req, res) => {
 });
 
 // API สำหรับดูสลิปทั้งหมด
-app.get("/api/slips", (req, res) => {
+app.get("/api/slips", async (req, res) => {
   try {
+    // ดึงสลิปจาก Google Sheets
+    const slipsFromSheets = await sheetsService.getSlips();
+
+    // ถ้าไม่มีข้อมูลใน Sheets ให้ fallback ไปที่ local file
+    if (slipsFromSheets && slipsFromSheets.length > 0) {
+      res.json(slipsFromSheets);
+      return;
+    }
+
+    // Fallback: อ่านจาก local JSON file
     const slipDataPath = process.env.VERCEL
       ? "/tmp/slips.json"
       : path.join(__dirname, "public", "slips", "slips.json");
@@ -282,9 +312,27 @@ app.get("/api/slips", (req, res) => {
 });
 
 // API สำหรับค้นหาสลิปตาม orderRef
-app.get("/api/slips/:orderRef", (req, res) => {
+app.get("/api/slips/:orderRef", async (req, res) => {
   try {
     const { orderRef } = req.params;
+
+    // ค้นหาจาก Google Sheets ก่อน
+    try {
+      const slipsFromSheets = await sheetsService.getSlips();
+      const slip = slipsFromSheets.find((s) => s.orderRef === orderRef);
+
+      if (slip) {
+        res.json(slip);
+        return;
+      }
+    } catch (sheetsError) {
+      console.log(
+        "Google Sheets search failed, trying local file:",
+        sheetsError.message
+      );
+    }
+
+    // Fallback: ค้นหาจาก local JSON file
     const slipDataPath = process.env.VERCEL
       ? "/tmp/slips.json"
       : path.join(__dirname, "public", "slips", "slips.json");
