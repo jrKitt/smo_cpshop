@@ -173,10 +173,10 @@ app.post("/upload-slip", async (req, res) => {
       processedFileName = fileName + extension;
     }
 
-    // สร้างชื่อไฟล์ที่มี orderRef
+    // สร้างชื่อไฟล์ที่ใช้ orderRef เป็นหลัก
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const finalFileName = orderRef
-      ? `${orderRef}_${timestamp}_${processedFileName}`
+      ? `${orderRef}_${processedFileName}`
       : `${timestamp}_${processedFileName}`;
 
     // เก็บไฟล์ใน /tmp directory สำหรับ Vercel (writable directory)
