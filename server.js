@@ -226,21 +226,36 @@ app.post("/upload-slip", async (req, res) => {
     // อัปโหลดสลิปลง Google Sheets (primary method)
     if (orderRef) {
       try {
-        await sheetsService.uploadSlip(
+        const uploadResult = await sheetsService.uploadSlip(
           orderRef,
           base64Data,
           finalFileName,
           type
         );
-        console.log("Slip uploaded to Google Sheets successfully");
+
+        console.log(
+          "Slip uploaded to Google Sheets successfully:",
+          uploadResult
+        );
+
+        return res.status(200).json({
+          success: true,
+          status: "success",
+          fileName: finalFileName,
+          orderRef: orderRef,
+          base64Data: base64Data,
+          fileType: type,
+          uploadMethod: "google_sheets",
+          message: "อัปโหลดสลิปลง Google Sheets สำเร็จ",
+        });
       } catch (sheetsError) {
         console.log(
-          "Google Sheets upload failed, but local save succeeded:",
+          "Google Sheets upload failed, falling back to local storage:",
           sheetsError.message
         );
       }
     } else {
-      console.log("No orderRef provided - skipping Google Sheets upload");
+      console.log("No orderRef provided - using local storage only");
     }
 
     // พยายามอัพโหลดไปยัง Google Drive ด้วย (backup) - เฉพาะ local development
