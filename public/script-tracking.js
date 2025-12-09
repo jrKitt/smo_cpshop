@@ -1,7 +1,6 @@
 // Tracking page JavaScript functions
 let currentOrderRef = null;
 let autoRefreshInterval = null;
-
 async function trackOrder(orderRef = null) {
   // If no orderRef provided, get from input field
   if (!orderRef) {
