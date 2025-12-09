@@ -236,6 +236,9 @@ class GoogleSheetsService {
         return null;
       }
 
+      // Use order_status as primary status field, fallback to delivery_type or status
+      const orderStatus = orderRow.get("order_status") || orderRow.get("delivery_type") || orderRow.get("status") || "pending";
+      
       return {
         orderRef: orderRow.get("order_ref"),
         packageName: orderRow.get("package_name"),
@@ -243,7 +246,7 @@ class GoogleSheetsService {
         lastname: orderRow.get("lastname"),
         email: orderRow.get("email"),
         phone: orderRow.get("phone"),
-        status: orderRow.get("order_status") || "pending",
+        status: orderStatus,
         userStatus: orderRow.get("status"),
         year: orderRow.get("year"),
         major: orderRow.get("major"),
@@ -256,7 +259,7 @@ class GoogleSheetsService {
         notes: orderRow.get("notes"),
         slipUrl: orderRow.get("slip_url"),
         trackingCode: orderRow.get("tracking_code"),
-        orderStatus: orderRow.get("order_status") || "pending",
+        orderStatus: orderStatus,
         orderDate: orderRow.get("created_at"),
         updatedAt: orderRow.get("updated_at"),
         rowNumber: orderRow.rowNumber,

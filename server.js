@@ -224,6 +224,7 @@ app.post("/upload-slip", async (req, res) => {
     console.log("Slip saved successfully:", finalFileName);
 
     // อัปโหลดสลิปลง Google Sheets (primary method)
+    let uploadedToSheets = false;
     if (orderRef) {
       try {
         const uploadResult = await sheetsService.uploadSlip(
@@ -237,6 +238,7 @@ app.post("/upload-slip", async (req, res) => {
           "Slip uploaded to Google Sheets successfully:",
           uploadResult
         );
+        uploadedToSheets = true;
 
         return res.status(200).json({
           success: true,
@@ -259,15 +261,16 @@ app.post("/upload-slip", async (req, res) => {
     }
 
     // พยายามอัพโหลดไปยัง Google Drive ด้วย (backup) - เฉพาะ local development
+    let driveUploadResult = null;
     if (!process.env.VERCEL) {
       try {
-        await driveService.uploadSlip(
+        driveUploadResult = await driveService.uploadSlip(
           fileBuffer,
           finalFileName,
           type,
           orderRef || "UNKNOWN"
         );
-        console.log("Also uploaded to Google Drive as backup");
+        console.log("Also uploaded to Google Drive as backup:", driveUploadResult);
       } catch (driveError) {
         console.log(
           "Google Drive backup failed, but local save succeeded:",
@@ -278,13 +281,48 @@ app.post("/upload-slip", async (req, res) => {
       console.log("Vercel environment - skipping Google Drive backup");
     }
 
+    // บันทึก metadata ลง slips.json เสมอ (เป็น fallback เมื่อ Sheets ไม่พร้อม)
+    const slipJsonPath = path.join(__dirname, "public", "slips", "slips.json");
+    let existingSlips = [];
+    
+    try {
+      if (fs.existsSync(slipJsonPath)) {
+        const data = fs.readFileSync(slipJsonPath, "utf8");
+        existingSlips = JSON.parse(data);
+      }
+    } catch (readError) {
+      console.log("Could not read existing slips.json:", readError.message);
+      existingSlips = [];
+    }
+
+    // ลบ entry เก่าที่มี orderRef เดียวกัน (ถ้ามี)
+    existingSlips = existingSlips.filter(s => s.orderRef !== orderRef);
+
+    // เพิ่ม entry ใหม่
+    const slipMetadata = {
+      orderRef: orderRef || "UNKNOWN",
+      fileName: driveUploadResult ? driveUploadResult.fileName : finalFileName,
+      originalFileName: fileName,
+      uploadDate: new Date().toISOString(),
+      fileType: type,
+      filePath: driveUploadResult ? driveUploadResult.viewLink : `/uploads/slips/${driveUploadResult ? driveUploadResult.fileName : finalFileName}`,
+      localPath: driveUploadResult ? driveUploadResult.localPath : filePath,
+    };
+
+    existingSlips.push(slipMetadata);
+
+    try {
+      fs.writeFileSync(slipJsonPath, JSON.stringify(existingSlips, null, 2), "utf8");
+      console.log("Updated slips.json with new slip metadata");
+    } catch (writeError) {
+      console.error("Could not write to slips.json:", writeError.message);
+    }
+
     res.status(200).json({
       success: true,
       status: "success",
-      fileName: finalFileName,
-      fileUrl: process.env.VERCEL
-        ? `/api/slip-file/${finalFileName}`
-        : `/slips/${finalFileName}`,
+      fileName: slipMetadata.fileName,
+      fileUrl: slipMetadata.filePath,
       message: "อัปโหลดสลิปสำเร็จ",
     });
   } catch (error) {

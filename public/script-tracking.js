@@ -1,4 +1,7 @@
 // Tracking page JavaScript functions
+let currentOrderRef = null;
+let autoRefreshInterval = null;
+
 async function trackOrder(orderRef = null) {
   // If no orderRef provided, get from input field
   if (!orderRef) {
@@ -7,6 +10,9 @@ async function trackOrder(orderRef = null) {
       orderRef = inputElement.value.trim();
     }
   }
+
+  // Store current order ref for refresh
+  currentOrderRef = orderRef;
 
   // Validate input
   if (!orderRef) {
@@ -33,7 +39,12 @@ async function trackOrder(orderRef = null) {
     if (result.success) {
       const order = result.order;
       displayTrackingResult("success", null, order);
+      
+      // Start auto-refresh every 30 seconds
+      startAutoRefresh();
     } else {
+      // Stop auto-refresh if order not found
+      stopAutoRefresh();
       displayTrackingResult(
         "error",
         "ไม่พบคำสั่งซื้อด้วยหมายเลขที่ระบุ กรุณาตรวจสอบและลองใหม่อีกครั้ง"
@@ -45,6 +56,42 @@ async function trackOrder(orderRef = null) {
       "error",
       "ไม่สามารถติดตามคำสั่งซื้อได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง"
     );
+    stopAutoRefresh();
+  }
+}
+
+// Start auto-refresh
+function startAutoRefresh() {
+  // Clear existing interval
+  stopAutoRefresh();
+  
+  console.log("Starting auto-refresh every 30 seconds...");
+  
+  // Refresh every 30 seconds
+  autoRefreshInterval = setInterval(() => {
+    if (currentOrderRef) {
+      console.log("Auto-refreshing order status...");
+      trackOrder(currentOrderRef);
+    }
+  }, 30000); // 30 seconds
+}
+
+// Stop auto-refresh
+function stopAutoRefresh() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+    console.log("Auto-refresh stopped");
+  }
+}
+
+// Manual refresh function
+function refreshOrderStatus() {
+  if (currentOrderRef) {
+    console.log("Manual refresh triggered");
+    trackOrder(currentOrderRef);
+  } else {
+    alert("กรุณาค้นหาคำสั่งซื้อก่อน");
   }
 }
 
@@ -102,67 +149,13 @@ function showTrackingResults(orderData) {
   const orderDateEl = document.getElementById("order-date-display");
   const orderTotalEl = document.getElementById("order-total-display");
   const trackingCodeEl = document.getElementById("tracking-code");
-  const orderStatusEl = document.getElementById("order-display");
+  const orderStatusEl = document.getElementById("order-status-display");
 
   if (orderNumberEl) orderNumberEl.textContent = orderData.orderNumber;
   if (orderDateEl) orderDateEl.textContent = orderData.orderDate;
   if (orderTotalEl)
     orderTotalEl.textContent = parseFloat(orderData.total).toLocaleString();
   if (trackingCodeEl) trackingCodeEl.textContent = orderData.trackingCode;
-
-  // Reset all timeline items to restore original timeline
-  const timelineContainer = document.querySelector(".timeline");
-  if (timelineContainer) {
-    timelineContainer.innerHTML = `
-      <div class="timeline-item" id="pending">
-        <div class="timeline-dot bg-warning"></div>
-        <div class="timeline-content">
-          <h6 class="mb-1 fw-bold">รอการยืนยัน</h6>
-          <small class="text-muted">รอทีมงานตรวจสอบและยืนยันคำสั่งซื้อ</small>
-        </div>
-      </div>
-      <div class="timeline-item" id="confirmed">
-        <div class="timeline-dot bg-info"></div>
-        <div class="timeline-content">
-          <h6 class="mb-1 fw-bold">ยืนยันคำสั่งซื้อแล้ว</h6>
-          <small class="text-muted">ทีมงานได้รับคำสั่งซื้อและยืนยันแล้ว</small>
-        </div>
-      </div>
-      <div class="timeline-item" id="preparing">
-        <div class="timeline-dot bg-primary"></div>
-        <div class="timeline-content">
-          <h6 class="mb-1 fw-bold">กำลังเตรียมสินค้า</h6>
-          <small class="text-muted">ทีมงานกำลังเตรียมสินค้าตามคำสั่งซื้อ</small>
-        </div>
-      </div>
-      <div class="timeline-item" id="shipping">
-        <div class="timeline-dot bg-warning"></div>
-        <div class="timeline-content">
-          <h6 class="mb-1 fw-bold">จัดส่งแล้ว</h6>
-          <small class="text-muted">สินค้าถูกส่งไปยังที่อยู่ที่ระบุแล้ว</small>
-          <div class="mt-2">
-            <span class="badge bg-primary fs-6">
-              <i class="fas fa-truck me-1"></i>
-              หมายเลขพัสดุ: <span id="tracking-code">${orderData.trackingCode}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class="timeline-item" id="delivered">
-        <div class="timeline-dot bg-success"></div>
-        <div class="timeline-content">
-          <h6 class="mb-1 fw-bold">จัดส่งสำเร็จ</h6>
-          <small class="text-muted">สินค้าถูกจัดส่งถึงผู้รับเรียบร้อยแล้ว</small>
-        </div>
-      </div>
-    `;
-  }
-
-  // Now reset and set the appropriate status
-  const timelineItems = document.querySelectorAll(".timeline-item");
-  timelineItems.forEach((item) => {
-    item.classList.remove("active", "completed");
-  });
 
   // Status mapping
   const statusMap = {
@@ -193,37 +186,132 @@ function showTrackingResults(orderData) {
     },
   };
 
-  const currentStatus = statusMap[orderData.status];
-  if (currentStatus && orderStatusEl) {
+  const currentStatus = statusMap[orderData.status] || statusMap.pending;
+  
+  // Update status badge
+  if (orderStatusEl) {
     orderStatusEl.textContent = currentStatus.text;
     orderStatusEl.className = `badge ${currentStatus.class} fs-6`;
   }
 
-  // Update timeline
-  const statusOrder = [
-    "pending",
-    "confirmed",
-    "preparing",
-    "shipping",
-    "delivered",
+  // Define all timeline steps with their details
+  const timelineSteps = [
+    {
+      id: "pending",
+      title: "รอการยืนยัน",
+      description: "รอทีมงานตรวจสอบและยืนยันคำสั่งซื้อ",
+      dotClass: "bg-warning"
+    },
+    {
+      id: "confirmed",
+      title: "ยืนยันคำสั่งซื้อแล้ว",
+      description: "ทีมงานได้รับคำสั่งซื้อและยืนยันแล้ว",
+      dotClass: "bg-info"
+    },
+    {
+      id: "preparing",
+      title: "กำลังเตรียมสินค้า",
+      description: "ทีมงานกำลังเตรียมสินค้าตามคำสั่งซื้อ",
+      dotClass: "bg-primary"
+    },
+    {
+      id: "shipping",
+      title: "จัดส่งแล้ว",
+      description: "สินค้าถูกส่งไปยังที่อยู่ที่ระบุแล้ว",
+      dotClass: "bg-warning",
+      showTracking: true
+    },
+    {
+      id: "delivered",
+      title: "จัดส่งสำเร็จ",
+      description: "สินค้าถูกจัดส่งถึงผู้รับเรียบร้อยแล้ว",
+      dotClass: "bg-success"
+    }
   ];
+
+  const statusOrder = ["pending", "confirmed", "preparing", "shipping", "delivered"];
   const currentIndex = statusOrder.indexOf(currentStatus.activeStep);
 
-  // Mark completed steps
-  for (let i = 0; i < currentIndex; i++) {
-    const element = document.getElementById(statusOrder[i]);
-    if (element) element.classList.add("completed");
+  // Debug logs
+  console.log("=== Order Tracking Debug ===");
+  console.log("Order status from API:", orderData.status);
+  console.log("Current status object:", currentStatus);
+  console.log("Current index in timeline:", currentIndex);
+  console.log("Will show steps 0 to", currentIndex);
+
+  // Build timeline HTML - show only completed and current steps
+  const timelineContainer = document.querySelector(".timeline");
+  if (timelineContainer) {
+    let timelineHTML = "";
+    
+    for (let i = 0; i <= currentIndex; i++) {
+      const step = timelineSteps[i];
+      const isCompleted = i < currentIndex;
+      const isActive = i === currentIndex;
+      const isLast = i === currentIndex; // แสดงเฉพาะถึงขั้นตอนปัจจุบัน
+      
+      timelineHTML += `
+        <div class="timeline-item ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}" id="${step.id}">
+          <div class="timeline-dot ${isCompleted ? 'bg-success' : step.dotClass}"></div>
+          <div class="timeline-content">
+            <h6 class="mb-1 fw-bold">${step.title}</h6>
+            <small class="text-muted">${step.description}</small>
+            ${step.showTracking && isActive ? `
+              <div class="mt-2">
+                <span class="badge bg-primary fs-6">
+                  <i class="fas fa-truck me-1"></i>
+                  หมายเลขพัสดุ: <span id="tracking-code-inline">${orderData.trackingCode}</span>
+                </span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+    
+    timelineContainer.innerHTML = timelineHTML;
   }
 
-  // Mark current active step
-  const activeElement = document.getElementById(currentStatus.activeStep);
-  if (activeElement) activeElement.classList.add("active");
+  // Update last refresh time
+  updateLastRefreshTime();
 
   // Scroll to results
   document.getElementById("tracking-results").scrollIntoView({
     behavior: "smooth",
     block: "start",
   });
+}
+
+// Update last refresh time display
+function updateLastRefreshTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  
+  let refreshTimeEl = document.getElementById('last-refresh-time');
+  if (!refreshTimeEl) {
+    // Create element if doesn't exist
+    const resultsContainer = document.getElementById('tracking-results');
+    if (resultsContainer) {
+      refreshTimeEl = document.createElement('div');
+      refreshTimeEl.id = 'last-refresh-time';
+      refreshTimeEl.className = 'text-center text-muted small mt-3';
+      resultsContainer.appendChild(refreshTimeEl);
+    }
+  }
+  
+  if (refreshTimeEl) {
+    refreshTimeEl.innerHTML = `
+      <i class="fas fa-sync-alt me-1"></i>
+      อัปเดตล่าสุด: ${timeString}
+      <button class="btn btn-sm btn-link text-primary" onclick="refreshOrderStatus()">
+        <i class="fas fa-redo me-1"></i>รีเฟรช
+      </button>
+    `;
+  }
 }
 
 // ฟังก์ชันจัดรูปแบบวันที่
